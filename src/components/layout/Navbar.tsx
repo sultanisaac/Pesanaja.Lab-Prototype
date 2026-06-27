@@ -1,15 +1,36 @@
+'use client'
+
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { createClient } from '@/lib/supabase/client';
+import { logout } from '@/app/(auth)/actions';
+import { useEffect, useState } from "react";
+import { User } from "@supabase/supabase-js";
 
 export function Navbar() {
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center px-4">
         <div className="flex items-center gap-6 md:gap-10">
           <Link href="/" className="flex items-center space-x-2">
             <span className="font-heading text-2xl font-bold tracking-tight text-primary">
-              Pesanaja.Lab
+              Pesanaja<span className="text-foreground">.Lab</span>
             </span>
           </Link>
           <div className="hidden gap-6 md:flex">
@@ -20,7 +41,7 @@ export function Navbar() {
               Home
             </Link>
             <Link
-              href="/services"
+              href="/search"
               className="text-sm font-medium text-foreground/60 transition-colors hover:text-primary"
             >
               Browse Services
@@ -41,8 +62,19 @@ export function Navbar() {
         </div>
         <div className="flex flex-1 items-center justify-end space-x-4">
           <nav className="flex items-center space-x-2">
-            <Link href="/login" className={buttonVariants({ variant: "ghost" })}>Login</Link>
-            <Link href="/register" className={cn(buttonVariants(), "bg-primary text-primary-foreground hover:bg-primary-hover")}>Register</Link>
+            {user ? (
+              <>
+                <Link href="/dashboard" className={buttonVariants({ variant: "ghost" })}>Dashboard</Link>
+                <form action={logout}>
+                  <button type="submit" className={cn(buttonVariants({ variant: "outline" }), "border-danger text-danger hover:bg-danger/10")}>Sign Out</button>
+                </form>
+              </>
+            ) : (
+              <>
+                <Link href="/login" className={buttonVariants({ variant: "ghost" })}>Login</Link>
+                <Link href="/register" className={cn(buttonVariants(), "bg-primary text-primary-foreground hover:bg-primary-hover")}>Register</Link>
+              </>
+            )}
           </nav>
         </div>
       </div>

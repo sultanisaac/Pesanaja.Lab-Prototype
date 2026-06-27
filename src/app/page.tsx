@@ -88,10 +88,11 @@ export default function Home() {
               </p>
 
               {/* Intelligent Search Bar */}
-              <div className="mx-auto mt-8 flex max-w-2xl flex-col items-center space-y-4 rounded-2xl bg-white p-2 shadow-lg sm:flex-row sm:space-y-0">
+              <form action="/search" className="mx-auto mt-8 flex max-w-2xl flex-col items-center space-y-4 rounded-2xl bg-white p-2 shadow-lg sm:flex-row sm:space-y-0">
                 <div className="relative flex-1 w-full">
                   <Search className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
                   <Input
+                    name="q"
                     className="h-12 border-0 bg-transparent pl-12 text-base shadow-none focus-visible:ring-0"
                     placeholder="What service are you looking for?"
                   />
@@ -100,14 +101,15 @@ export default function Home() {
                 <div className="relative flex-1 w-full">
                   <MapPin className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
                   <Input
+                    name="location"
                     className="h-12 border-0 bg-transparent pl-12 text-base shadow-none focus-visible:ring-0"
                     placeholder="Jakarta, Indonesia"
                   />
                 </div>
-                <Button className="h-12 w-full rounded-xl bg-primary px-8 text-base text-primary-foreground hover:bg-primary-hover sm:w-auto">
+                <Button type="submit" className="h-12 w-full rounded-xl bg-primary px-8 text-base text-primary-foreground hover:bg-primary-hover sm:w-auto">
                   Search
                 </Button>
-              </div>
+              </form>
 
               {/* Popular Searches */}
               <div className="mt-8 flex flex-wrap justify-center gap-2">
