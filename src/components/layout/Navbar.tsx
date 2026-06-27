@@ -25,7 +25,11 @@ export function Navbar() {
   }, []);
 
   return (
-    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <>
+      <div className="bg-destructive text-destructive-foreground text-center py-1.5 px-4 text-xs font-medium tracking-wide">
+        ⚠️ Prototype Version: This is a demonstration website. No real transactions or bookings will be processed.
+      </div>
+      <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center px-4">
         <div className="flex items-center gap-6 md:gap-10">
           <Link href="/" className="flex items-center space-x-2">
@@ -79,5 +83,6 @@ export function Navbar() {
         </div>
       </div>
     </nav>
+    </>
   );
 }

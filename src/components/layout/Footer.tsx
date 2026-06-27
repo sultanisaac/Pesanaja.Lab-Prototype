@@ -35,6 +35,9 @@ export function Footer() {
         </div>
         <div className="mt-12 border-t pt-8 text-center text-sm text-secondary-foreground">
           <p>&copy; {new Date().getFullYear()} Pesanaja.Lab. All rights reserved.</p>
+          <div className="mt-4 inline-block bg-destructive/10 text-destructive border border-destructive/20 rounded-md px-4 py-2 text-xs font-semibold">
+            ⚠️ PROTOTYPE VERSION — No real services are provided or billed on this website.
+          </div>
         </div>
       </div>
     </footer>
