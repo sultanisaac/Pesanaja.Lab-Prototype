@@ -2,7 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar, Clock, CreditCard, Settings, Star, Search } from "lucide-react"
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 export default async function CustomerDashboard() {
   const supabase = await createClient()
@@ -15,9 +16,7 @@ export default async function CustomerDashboard() {
           <h1 className="text-3xl font-heading font-bold">Welcome back, {user?.user_metadata?.full_name || 'Customer'}!</h1>
           <p className="text-secondary-foreground">Here is an overview of your bookings and activities.</p>
         </div>
-        <Button asChild>
-          <Link href="/services"><Search className="mr-2 h-4 w-4" /> Find Services</Link>
-        </Button>
+        <Link href="/search" className={cn(buttonVariants())}><Search className="mr-2 h-4 w-4" /> Find Services</Link>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">

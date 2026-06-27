@@ -2,7 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import { ArrowLeft, Upload } from "lucide-react"
 import Link from 'next/link'
 
@@ -13,9 +14,7 @@ export default async function BusinessSettings() {
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link href="/dashboard/business"><ArrowLeft className="h-5 w-5" /></Link>
-        </Button>
+        <Link href="/dashboard/business" className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }))}><ArrowLeft className="h-5 w-5" /></Link>
         <div>
           <h1 className="text-3xl font-heading font-bold">Business Profile</h1>
           <p className="text-secondary-foreground">Manage your business details and verification documents.</p>

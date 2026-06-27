@@ -1,7 +1,8 @@
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, MapPin, Filter, Star, BadgeCheck, Heart, SlidersHorizontal } from "lucide-react";
@@ -169,9 +170,7 @@ export default async function SearchPage(props: {
                         </div>
                         <div className="flex gap-2">
                           <Button variant="outline" className="hidden sm:flex">Message</Button>
-                          <Button asChild>
-                            <Link href={`/business/${item}`}>Book Now</Link>
-                          </Button>
+                          <Link href={`/business/${item}`} className={cn(buttonVariants())}>Book Now</Link>
                         </div>
                       </div>
                     </CardContent>
