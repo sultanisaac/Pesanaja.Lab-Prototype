@@ -31,7 +31,7 @@ export async function signup(formData: FormData) {
   const fullName = formData.get('fullName') as string
   const role = formData.get('role') as string // 'customer' or 'business'
 
-  const { data, error } = await supabase.auth.signUp({
+  const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
