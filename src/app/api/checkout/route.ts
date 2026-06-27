@@ -3,7 +3,8 @@ import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase/server'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-02-24.acacia' as Stripe.LatestApiVersion,
+  // @ts-expect-error - TS expects a specific literal that changes per SDK version
+  apiVersion: '2025-02-24.acacia',
 })
 
 export async function POST() {
