@@ -37,3 +37,28 @@ export async function updateBusinessProfile(formData: FormData): Promise<void> {
   redirect('/dashboard/business/settings?success=1')
 }
 
+export async function updateOperatingHours(formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Unauthorized' }
+
+  const operating_hours_str = formData.get('operating_hours') as string
+  if (!operating_hours_str) return { error: 'Invalid data' }
+
+  try {
+    const operating_hours = JSON.parse(operating_hours_str)
+    const { error } = await supabase
+      .from('businesses')
+      .update({ operating_hours, updated_at: new Date().toISOString() })
+      .eq('owner_id', user.id)
+
+    if (error) return { error: error.message }
+    
+    revalidatePath('/dashboard/business/settings')
+    revalidatePath('/business/[id]', 'page')
+    return { success: true }
+  } catch (err: any) {
+    return { error: 'Failed to update operating hours' }
+  }
+}
+
