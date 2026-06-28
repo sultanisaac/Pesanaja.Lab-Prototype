@@ -1,20 +1,44 @@
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+import { Sidebar } from '@/components/dashboard/Sidebar'
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
+  const supabase = await createClient()
+  const { data, error } = await supabase.auth.getUser()
+
+  if (error || !data?.user) {
+    redirect('/login')
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('first_name, last_name, email, role')
+    .eq('id', data.user.id)
+    .single()
+
+  const role = (profile?.role ?? 'customer') as 'customer' | 'business' | 'admin'
+  const displayName = profile?.first_name
+    ? `${profile.first_name} ${profile.last_name ?? ''}`.trim()
+    : data.user.email?.split('@')[0] ?? 'User'
+  const email = profile?.email ?? data.user.email ?? ''
+
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <Navbar />
-      <main className="flex-1 bg-muted/30">
-        <div className="container mx-auto px-4 py-8">
-          {children}
-        </div>
-      </main>
-      <Footer />
+    <div className="flex h-screen bg-muted/30 overflow-hidden">
+      <Sidebar role={role} displayName={displayName} email={email} />
+      {/* Main content area */}
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+        {/* Mobile top bar spacer */}
+        <div className="md:hidden h-14 shrink-0" />
+        <main className="flex-1 overflow-y-auto">
+          <div className="container max-w-6xl mx-auto px-4 py-8">
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
-  );
+  )
 }

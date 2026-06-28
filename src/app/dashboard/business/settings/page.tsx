@@ -1,116 +1,222 @@
 import { createClient } from '@/lib/supabase/server'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button, buttonVariants } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-import { ArrowLeft, Upload } from "lucide-react"
-import Link from 'next/link'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Briefcase, Mail, Phone, CheckCircle2, Circle, BadgeCheck } from 'lucide-react'
+import { updateBusinessProfile } from './actions'
 
-export default async function BusinessSettings() {
+export default async function BusinessSettingsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('first_name, last_name, email')
+    .eq('id', user?.id)
+    .single()
+
+  const { data: business } = await supabase
+    .from('businesses')
+    .select('id, name, description, contact_email, contact_phone, status, is_active')
+    .eq('owner_id', user?.id)
+    .single()
+
+  const ownerName = profile
+    ? `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim()
+    : user?.email ?? 'Owner'
+
+  // Completeness check
+  const checks = [
+    { label: 'Business name', done: !!business?.name },
+    { label: 'Description', done: !!business?.description },
+    { label: 'Contact email', done: !!business?.contact_email },
+    { label: 'Contact phone', done: !!business?.contact_phone },
+  ]
+  const completeness = Math.round((checks.filter((c) => c.done).length / checks.length) * 100)
+
+  const isVerified = business?.status === 'verified'
+  const statusLabel = business?.status === 'verified' ? 'Verified' : business?.status === 'rejected' ? 'Rejected' : 'Pending Review'
+  const statusColor = business?.status === 'verified' ? 'text-success' : business?.status === 'rejected' ? 'text-destructive' : 'text-warning'
+
   return (
-    <div className="space-y-8 max-w-4xl mx-auto">
-      <div className="flex items-center gap-4">
-        <Link href="/dashboard/business" className={cn(buttonVariants({ variant: 'ghost', size: 'icon' }))}><ArrowLeft className="h-5 w-5" /></Link>
-        <div>
-          <h1 className="text-3xl font-heading font-bold">Business Profile</h1>
-          <p className="text-secondary-foreground">Manage your business details and verification documents.</p>
-        </div>
+    <div className="space-y-8 max-w-3xl">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-heading font-bold text-foreground flex items-center gap-2">
+          <Briefcase className="h-6 w-6 text-primary" /> Business Profile Settings
+        </h1>
+        <p className="text-muted-foreground text-sm mt-1">
+          This is the public profile customers will see when they find your business.
+        </p>
       </div>
 
-      <div className="grid gap-8 md:grid-cols-3">
-        <div className="md:col-span-2 space-y-8">
-          <Card>
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Main form — 2/3 */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Owner info — read-only */}
+          <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle>General Information</CardTitle>
-              <CardDescription>Update your business name, description, and contact info.</CardDescription>
+              <CardTitle className="text-base font-semibold">Business Owner</CardTitle>
+              <CardDescription>This is displayed to customers to build trust</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="businessName">Business Name</Label>
-                <Input id="businessName" defaultValue={user?.user_metadata?.full_name} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <textarea 
-                  id="description" 
-                  className="w-full min-h-[100px] rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                  placeholder="Tell customers about your services..."
-                ></textarea>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input id="phone" type="tel" />
+            <CardContent>
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/40">
+                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold shrink-0">
+                  {ownerName.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2) || '?'}
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Public Email</Label>
-                  <Input id="email" type="email" defaultValue={user?.email} />
+                <div>
+                  <p className="font-medium text-sm text-foreground">{ownerName}</p>
+                  <p className="text-xs text-muted-foreground">{profile?.email ?? user?.email}</p>
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                <Input id="address" placeholder="123 Main St, Jakarta" />
-              </div>
-              <Button>Save Changes</Button>
+              <p className="text-xs text-muted-foreground mt-2">
+                To update your personal name, go to{' '}
+                <a href="/dashboard/profile" className="text-primary hover:underline">Profile Settings</a>.
+              </p>
             </CardContent>
           </Card>
 
-          <Card>
+          {/* Business details form */}
+          <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle>Document Verification</CardTitle>
-              <CardDescription>Upload your business licenses and ID to get the Verified Badge.</CardDescription>
+              <CardTitle className="text-base font-semibold">Business Information</CardTitle>
+              <CardDescription>This information is visible to all customers</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="rounded-lg border border-dashed p-8 text-center bg-muted/20 hover:bg-muted/50 transition-colors">
-                <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                  <Upload className="h-6 w-6 text-primary" />
+            <CardContent>
+              <form action={updateBusinessProfile} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label htmlFor="name" className="text-sm font-medium text-foreground flex items-center gap-1.5">
+                    <Briefcase className="h-3.5 w-3.5" /> Business Name <span className="text-destructive">*</span>
+                  </label>
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    required
+                    defaultValue={business?.name ?? ''}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+                    placeholder="e.g. Smile Dental Clinic"
+                  />
                 </div>
-                <h3 className="text-lg font-medium mb-1">Upload Documents</h3>
-                <p className="text-sm text-muted-foreground mb-4">Drag and drop or click to select files (PDF, JPG, PNG)</p>
-                <Button variant="outline">Select Files</Button>
-              </div>
 
-              <div className="space-y-4">
-                <h4 className="font-medium text-sm">Uploaded Documents</h4>
-                <div className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-muted rounded">
-                      <svg className="h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium">KTP_Owner.jpg</p>
-                      <p className="text-xs text-muted-foreground">1.2 MB</p>
-                    </div>
-                  </div>
-                  <span className="text-xs font-medium text-warning bg-warning/10 px-2 py-1 rounded">Pending Review</span>
+                <div className="space-y-1.5">
+                  <label htmlFor="description" className="text-sm font-medium text-foreground">
+                    Description
+                  </label>
+                  <textarea
+                    id="description"
+                    name="description"
+                    rows={4}
+                    defaultValue={business?.description ?? ''}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors resize-none"
+                    placeholder="Tell customers about your business, what makes you special, your experience..."
+                  />
+                  <p className="text-xs text-muted-foreground">This appears on your public business page.</p>
                 </div>
-              </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <label htmlFor="contact_email" className="text-sm font-medium text-foreground flex items-center gap-1.5">
+                      <Mail className="h-3.5 w-3.5" /> Public Email
+                    </label>
+                    <input
+                      id="contact_email"
+                      name="contact_email"
+                      type="email"
+                      defaultValue={business?.contact_email ?? ''}
+                      className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+                      placeholder="business@email.com"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label htmlFor="contact_phone" className="text-sm font-medium text-foreground flex items-center gap-1.5">
+                      <Phone className="h-3.5 w-3.5" /> Phone Number
+                    </label>
+                    <input
+                      id="contact_phone"
+                      name="contact_phone"
+                      type="tel"
+                      defaultValue={business?.contact_phone ?? ''}
+                      className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+                      placeholder="+62 8xx xxxx xxxx"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2 flex items-center gap-3">
+                  <button
+                    type="submit"
+                    className="px-6 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors"
+                  >
+                    {business ? 'Save Changes' : 'Create Business Profile'}
+                  </button>
+                  {business && (
+                    <a
+                      href={`/business/${business.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-primary hover:underline"
+                    >
+                      View public page ↗
+                    </a>
+                  )}
+                </div>
+              </form>
             </CardContent>
           </Card>
         </div>
 
-        <div className="space-y-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile Status</CardTitle>
+        {/* Right sidebar — 1/3 */}
+        <div className="space-y-4">
+          {/* Verification status */}
+          <Card className="shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-semibold">Verification Status</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center gap-2">
+                {isVerified
+                  ? <BadgeCheck className="h-5 w-5 text-success" />
+                  : <div className="h-5 w-5 rounded-full border-2 border-warning" />
+                }
+                <span className={`text-sm font-semibold ${statusColor}`}>{statusLabel}</span>
+              </div>
+              {!isVerified && (
+                <p className="text-xs text-muted-foreground">
+                  Complete your profile and submit documents to get the Verified badge, which builds customer trust.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Profile completeness */}
+          <Card className="shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-semibold">Profile Completeness</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">Completeness</span>
-                <span className="font-bold">65%</span>
+              <div className="space-y-1.5">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Progress</span>
+                  <span className="font-bold text-foreground">{completeness}%</span>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary rounded-full transition-all"
+                    style={{ width: `${completeness}%` }}
+                  />
+                </div>
               </div>
-              <div className="w-full bg-muted rounded-full h-2">
-                <div className="bg-primary h-2 rounded-full" style={{ width: '65%' }}></div>
-              </div>
-              <ul className="text-sm space-y-2 mt-4 text-muted-foreground">
-                <li className="flex items-center gap-2 text-success"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg> Basic Info</li>
-                <li className="flex items-center gap-2 text-success"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg> Contact Details</li>
-                <li className="flex items-center gap-2"><div className="w-4 h-4 border-2 rounded-full"></div> Upload Documents</li>
-                <li className="flex items-center gap-2"><div className="w-4 h-4 border-2 rounded-full"></div> Add Services</li>
+              <ul className="space-y-2">
+                {checks.map((check) => (
+                  <li key={check.label} className="flex items-center gap-2 text-sm">
+                    {check.done
+                      ? <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
+                      : <Circle className="h-4 w-4 text-muted-foreground shrink-0" />
+                    }
+                    <span className={check.done ? 'text-foreground' : 'text-muted-foreground'}>
+                      {check.label}
+                    </span>
+                  </li>
+                ))}
               </ul>
             </CardContent>
           </Card>
