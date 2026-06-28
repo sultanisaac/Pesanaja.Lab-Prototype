@@ -3,6 +3,15 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+
+// Helper for bypassing RLS securely on server-side actions
+function getAdminClient() {
+  return createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
 
 export async function updateBusinessProfile(formData: FormData): Promise<void> {
   const supabase = await createClient()
@@ -62,3 +71,91 @@ export async function updateOperatingHours(formData: FormData) {
   }
 }
 
+
+export async function addService(businessId: string, formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Unauthorized' }
+
+  // Verify ownership
+  const { data: business } = await supabase.from('businesses').select('id').eq('id', businessId).eq('owner_id', user.id).single()
+  if (!business) return { error: 'Unauthorized business access' }
+
+  const name = formData.get('name') as string
+  const description = formData.get('description') as string
+  const price = Number(formData.get('price'))
+  const duration_minutes = Number(formData.get('duration_minutes'))
+
+  const adminAuth = getAdminClient()
+  const { error } = await adminAuth.from('services').insert({
+    business_id: businessId,
+    name, description, price, duration_minutes
+  })
+  if (error) return { error: error.message }
+  revalidatePath('/dashboard/business/settings')
+  return { success: true }
+}
+
+export async function deleteService(serviceId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Unauthorized' }
+
+  const adminAuth = getAdminClient()
+  // Fetch service to get business_id
+  const { data: service } = await adminAuth.from('services').select('business_id').eq('id', serviceId).single()
+  if (!service) return { error: 'Service not found' }
+
+  // Verify ownership
+  const { data: business } = await supabase.from('businesses').select('id').eq('id', service.business_id).eq('owner_id', user.id).single()
+  if (!business) return { error: 'Unauthorized business access' }
+
+  const { error } = await adminAuth.from('services').delete().eq('id', serviceId)
+  if (error) return { error: error.message }
+  revalidatePath('/dashboard/business/settings')
+  return { success: true }
+}
+
+export async function addLocation(businessId: string, formData: FormData) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Unauthorized' }
+
+  // Verify ownership
+  const { data: business } = await supabase.from('businesses').select('id').eq('id', businessId).eq('owner_id', user.id).single()
+  if (!business) return { error: 'Unauthorized business access' }
+
+  const street_address = formData.get('street_address') as string
+  const city = formData.get('city') as string
+  const state = formData.get('state') as string
+  const postal_code = formData.get('postal_code') as string
+
+  const adminAuth = getAdminClient()
+  const { error } = await adminAuth.from('addresses').insert({
+    business_id: businessId,
+    street_address, city, state, postal_code
+  })
+  if (error) return { error: error.message }
+  revalidatePath('/dashboard/business/settings')
+  return { success: true }
+}
+
+export async function deleteLocation(locationId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Unauthorized' }
+
+  const adminAuth = getAdminClient()
+  // Fetch address to get business_id
+  const { data: address } = await adminAuth.from('addresses').select('business_id').eq('id', locationId).single()
+  if (!address) return { error: 'Location not found' }
+
+  // Verify ownership
+  const { data: business } = await supabase.from('businesses').select('id').eq('id', address.business_id).eq('owner_id', user.id).single()
+  if (!business) return { error: 'Unauthorized business access' }
+
+  const { error } = await adminAuth.from('addresses').delete().eq('id', locationId)
+  if (error) return { error: error.message }
+  revalidatePath('/dashboard/business/settings')
+  return { success: true }
+}

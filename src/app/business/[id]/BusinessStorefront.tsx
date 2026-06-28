@@ -36,12 +36,12 @@ type BusinessStorefrontProps = {
   }
   services: Service[]
   reviews: Review[]
-  address: { street_address: string; city: string; state: string; postal_code?: string | null } | null
+  addresses: { id: string; street_address: string; city: string; state: string; postal_code?: string | null }[]
   isFavorite: boolean
   isAuthenticated: boolean
 }
 
-export function BusinessStorefront({ business, services, reviews, address, isFavorite: initialFavorite, isAuthenticated }: BusinessStorefrontProps) {
+export function BusinessStorefront({ business, services, reviews, addresses, isFavorite: initialFavorite, isAuthenticated }: BusinessStorefrontProps) {
   const router = useRouter()
   const [isFavorite, setIsFavorite] = useState(initialFavorite)
   const [favLoading, setFavLoading] = useState(false)
@@ -184,9 +184,10 @@ export function BusinessStorefront({ business, services, reviews, address, isFav
                 <span className="flex items-center gap-1 bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded-md text-primary">
                   <Star className="h-4 w-4 fill-primary" /> {averageRating} ({reviews.length})
                 </span>
-                {address && (
+                {addresses.length > 0 && (
                   <span className="flex items-center gap-1 bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded-md">
-                    <MapPin className="h-4 w-4" /> {address.city}, {address.state}
+                    <MapPin className="h-4 w-4" /> {addresses[0].city}, {addresses[0].state}
+                    {addresses.length > 1 && ` (+${addresses.length - 1} more)`}
                   </span>
                 )}
               </div>
@@ -296,15 +297,19 @@ export function BusinessStorefront({ business, services, reviews, address, isFav
               <CardTitle className="text-lg">Contact & Info</CardTitle>
             </CardHeader>
             <CardContent className="pt-4 space-y-4">
-              {address && (
+              {addresses.length > 0 && (
                 <div className="flex items-start gap-3">
                   <MapPin className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">Address</p>
-                    <p className="text-sm text-muted-foreground leading-relaxed mt-1">
-                      {address.street_address}<br/>
-                      {address.city}, {address.state} {address.postal_code || ''}
-                    </p>
+                  <div className="w-full">
+                    <p className="text-sm font-medium text-foreground mb-2">Locations</p>
+                    <div className="space-y-3">
+                      {addresses.map((addr) => (
+                        <p key={addr.id} className="text-sm text-muted-foreground leading-relaxed">
+                          {addr.street_address}<br/>
+                          {addr.city}, {addr.state} {addr.postal_code || ''}
+                        </p>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}

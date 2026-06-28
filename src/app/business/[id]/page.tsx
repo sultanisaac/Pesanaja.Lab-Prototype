@@ -29,14 +29,14 @@ export default async function BusinessDetailPage({ params }: PageProps) {
   // Fetch extra data for the storefront
   const { data: { user } } = await supabase.auth.getUser()
   
-  const [reviewsResponse, addressResponse, favoriteResponse] = await Promise.all([
+  const [reviewsResponse, addressesResponse, favoriteResponse] = await Promise.all([
     supabase.from('reviews').select('id, rating, comment, created_at, customer:profiles(first_name, last_name)').eq('business_id', id),
-    supabase.from('addresses').select('street_address, city, state, postal_code').eq('business_id', id).single(),
+    supabase.from('addresses').select('id, street_address, city, state, postal_code').eq('business_id', id),
     user ? supabase.from('favorites').select('id').eq('business_id', id).eq('customer_id', user.id).single() : Promise.resolve({ data: null })
   ])
 
   const reviews = reviewsResponse.data || []
-  const address = addressResponse.data || null
+  const addresses = addressesResponse.data || []
   const isFavorite = !!favoriteResponse.data
 
   return (
@@ -48,7 +48,7 @@ export default async function BusinessDetailPage({ params }: PageProps) {
           business={business}
           services={business.services || []}
           reviews={reviews as unknown as { id: string; rating: number; comment: string | null; created_at: string; customer: { first_name: string | null; last_name: string | null; } | null; }[]}
-          address={address}
+          addresses={addresses}
           isFavorite={isFavorite}
           isAuthenticated={!!user}
         />

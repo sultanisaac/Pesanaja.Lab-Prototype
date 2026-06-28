@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Search, MapPin, Filter, Star, BadgeCheck, Heart, SlidersHorizontal } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function SearchPage(props: {
   searchParams: Promise<{ q?: string; location?: string }>;
@@ -16,6 +17,27 @@ export default async function SearchPage(props: {
   const query = searchParams.q || "";
   const location = searchParams.location || "";
 
+  const supabase = await createClient();
+
+  // Basic search query for verified and active businesses
+  let dbQuery = supabase
+    .from('businesses')
+    .select(`
+      id, name, description, banner_url, logo_url,
+      services ( price ),
+      addresses ( city, state )
+    `)
+    .eq('is_active', true)
+    .eq('status', 'verified');
+
+  if (query) {
+    dbQuery = dbQuery.ilike('name', `%${query}%`);
+  }
+  // We can add location filtering later if needed
+
+  const { data: businesses } = await dbQuery;
+  const results = businesses || [];
+
   return (
     <div className="flex min-h-screen flex-col bg-muted/20">
       <Navbar />
@@ -23,10 +45,11 @@ export default async function SearchPage(props: {
       {/* Search Header */}
       <div className="bg-white border-b sticky top-[64px] z-30">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-col sm:flex-row gap-4 items-center">
+          <form className="flex flex-col sm:flex-row gap-4 items-center">
             <div className="flex-1 w-full flex items-center bg-muted/50 rounded-lg px-3">
               <Search className="h-5 w-5 text-muted-foreground mr-2" />
               <Input 
+                name="q"
                 className="border-0 bg-transparent shadow-none focus-visible:ring-0 px-0 h-12" 
                 defaultValue={query} 
                 placeholder="What service are you looking for?" 
@@ -35,14 +58,15 @@ export default async function SearchPage(props: {
             <div className="flex-1 w-full flex items-center bg-muted/50 rounded-lg px-3">
               <MapPin className="h-5 w-5 text-muted-foreground mr-2" />
               <Input 
+                name="location"
                 className="border-0 bg-transparent shadow-none focus-visible:ring-0 px-0 h-12" 
                 defaultValue={location} 
                 placeholder="Location" 
               />
             </div>
-            <Button className="w-full sm:w-auto h-12 px-8">Search</Button>
-            <Button variant="outline" className="w-full sm:w-auto h-12 sm:hidden"><SlidersHorizontal className="mr-2 h-4 w-4"/> Filters</Button>
-          </div>
+            <Button type="submit" className="w-full sm:w-auto h-12 px-8">Search</Button>
+            <Button type="button" variant="outline" className="w-full sm:w-auto h-12 sm:hidden"><SlidersHorizontal className="mr-2 h-4 w-4"/> Filters</Button>
+          </form>
         </div>
       </div>
 
@@ -115,7 +139,7 @@ export default async function SearchPage(props: {
           {/* Search Results */}
           <div className="flex-1 space-y-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold">124 results found {query && `for "${query}"`}</h2>
+              <h2 className="text-xl font-bold">{results.length} results found {query && `for "${query}"`}</h2>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-muted-foreground">Sort by:</span>
                 <select className="text-sm border-0 bg-transparent font-medium focus:ring-0 cursor-pointer">
@@ -129,54 +153,83 @@ export default async function SearchPage(props: {
 
             {/* List of results */}
             <div className="space-y-4">
-              {[1, 2, 3, 4, 5].map((item) => (
-                <Card key={item} className="overflow-hidden hover:shadow-md transition-shadow">
-                  <div className="flex flex-col sm:flex-row">
-                    <div className="relative w-full sm:w-64 h-48 sm:h-auto shrink-0">
-                      <Image
-                        src={`https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=400&auto=format&fit=crop&q=60`}
-                        alt="Business Image"
-                        fill
-                        className="object-cover"
-                      />
-                      <Button size="icon" variant="secondary" className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/90">
-                        <Heart className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <CardContent className="flex-1 p-6 flex flex-col justify-between">
-                      <div>
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <h3 className="font-heading text-lg font-bold">Dental Care Provider {item}</h3>
-                              <BadgeCheck className="h-5 w-5 text-primary" />
+              {results.length === 0 ? (
+                <div className="text-center py-12 bg-white rounded-xl border border-border shadow-sm">
+                  <p className="text-muted-foreground text-lg">No businesses found matching your criteria.</p>
+                  <Link href="/search" className="text-primary font-medium hover:underline mt-2 inline-block">Clear filters</Link>
+                </div>
+              ) : (
+                results.map((item) => {
+                  // Calculate starting price
+                  const prices = item.services?.map((s: { price: number }) => s.price) || [];
+                  const minPrice = prices.length > 0 ? Math.min(...prices) : null;
+                  
+                  // Extract location safely (if it's an array or object)
+                  const addressList = item.addresses as { city?: string; state?: string }[] | null;
+                  const firstAddress = Array.isArray(addressList) ? addressList[0] : addressList;
+                  const locationStr = firstAddress 
+                    ? `${firstAddress.city || ''}, ${firstAddress.state || ''}`.replace(/^, /, '').replace(/, $/, '')
+                    : 'Location varies';
+
+                  return (
+                    <Card key={item.id} className="overflow-hidden hover:shadow-md transition-shadow">
+                      <div className="flex flex-col sm:flex-row">
+                        <div className="relative w-full sm:w-64 h-48 sm:h-auto shrink-0 bg-muted">
+                          {item.banner_url || item.logo_url ? (
+                            <Image
+                              src={item.banner_url || item.logo_url || ''}
+                              alt={item.name}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-4xl font-heading font-bold opacity-20">
+                              {item.name.charAt(0)}
                             </div>
-                            <p className="text-sm text-secondary-foreground mb-2">Dentist &bull; Jakarta Selatan (2.5 km)</p>
+                          )}
+                          <Button size="icon" variant="secondary" className="absolute top-2 right-2 h-8 w-8 rounded-full bg-white/90">
+                            <Heart className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <CardContent className="flex-1 p-6 flex flex-col justify-between">
+                          <div>
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <Link href={`/business/${item.id}`} className="hover:underline">
+                                    <h3 className="font-heading text-lg font-bold">{item.name}</h3>
+                                  </Link>
+                                  <BadgeCheck className="h-5 w-5 text-primary" />
+                                </div>
+                                <p className="text-sm text-secondary-foreground mb-2">{locationStr}</p>
+                              </div>
+                              <div className="flex items-center bg-warning/10 px-2 py-1 rounded">
+                                <Star className="h-4 w-4 fill-warning text-warning mr-1" />
+                                <span className="font-bold text-sm">--</span>
+                              </div>
+                            </div>
+                            <p className="text-sm text-muted-foreground line-clamp-2 mt-2">
+                              {item.description || 'No description provided.'}
+                            </p>
                           </div>
-                          <div className="flex items-center bg-warning/10 px-2 py-1 rounded">
-                            <Star className="h-4 w-4 fill-warning text-warning mr-1" />
-                            <span className="font-bold text-sm">4.8</span>
-                            <span className="text-xs text-muted-foreground ml-1">(120)</span>
+                          <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                            <div>
+                              <p className="text-xs text-muted-foreground">Starting from</p>
+                              <p className="font-bold">
+                                {minPrice !== null ? `Rp ${minPrice.toLocaleString('id-ID')}` : 'Varies'}
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <Link href={`/business/${item.id}`} className={cn(buttonVariants({ variant: "outline" }), "hidden sm:flex")}>View Profile</Link>
+                              <Link href={`/business/${item.id}`} className={cn(buttonVariants())}>Book Now</Link>
+                            </div>
                           </div>
-                        </div>
-                        <p className="text-sm text-muted-foreground line-clamp-2 mt-2">
-                          Professional dental clinic providing top-tier services including scaling, whitening, and general checkups. Book your appointment today.
-                        </p>
+                        </CardContent>
                       </div>
-                      <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                        <div>
-                          <p className="text-xs text-muted-foreground">Starting from</p>
-                          <p className="font-bold">Rp 250.000</p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button variant="outline" className="hidden sm:flex">Message</Button>
-                          <Link href={`/business/${item}`} className={cn(buttonVariants())}>Book Now</Link>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </div>
-                </Card>
-              ))}
+                    </Card>
+                  );
+                })
+              )}
             </div>
             
             {/* Pagination placeholder */}
