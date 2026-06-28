@@ -74,11 +74,8 @@ export default function Home() {
         {/* Hero Section */}
         <section className="relative overflow-hidden bg-brand/30 py-24 md:py-32">
           <div className="container relative z-10 mx-auto px-4 text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="mx-auto max-w-3xl space-y-6"
+            <div
+              className="mx-auto max-w-3xl space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700"
             >
               <h1 className="font-heading text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl">
                 Find <span className="text-primary">Trusted</span> Local Services Near You
@@ -124,7 +121,7 @@ export default function Home() {
                   </Link>
                 ))}
               </div>
-            </motion.div>
+              </div>
           </div>
           
           {/* Decorative Background Elements */}
