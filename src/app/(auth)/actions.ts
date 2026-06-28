@@ -61,10 +61,14 @@ export async function logout() {
 export async function signInWithGoogle() {
   const supabase = await createClient()
   
-  // This uses a relative path that Supabase interprets with its own site url
-  // Or we can provide a fully qualified URL if NEXT_PUBLIC_SITE_URL is set
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+  const getBaseUrl = () => {
+    if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL
+    if (process.env.NEXT_PUBLIC_VERCEL_URL) return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+    if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
+    return 'http://localhost:3000'
+  }
   
+  const baseUrl = getBaseUrl()
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: {
