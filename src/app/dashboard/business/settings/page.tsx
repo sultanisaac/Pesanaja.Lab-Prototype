@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Briefcase, Mail, Phone, CheckCircle2, Circle, BadgeCheck } from 'lucide-react'
 import { updateBusinessProfile } from './actions'
+import { BusinessImageUpload } from '@/components/dashboard/BusinessImageUpload'
 
 export default async function BusinessSettingsPage() {
   const supabase = await createClient()
@@ -15,7 +16,7 @@ export default async function BusinessSettingsPage() {
 
   const { data: business } = await supabase
     .from('businesses')
-    .select('id, name, description, contact_email, contact_phone, status, is_active')
+    .select('id, name, description, contact_email, contact_phone, status, is_active, logo_url, banner_url')
     .eq('owner_id', user?.id)
     .single()
 
@@ -51,6 +52,28 @@ export default async function BusinessSettingsPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main form — 2/3 */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Business Images */}
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-base font-semibold">Business Images</CardTitle>
+              <CardDescription>Logo and cover image shown to customers</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {business ? (
+                <BusinessImageUpload
+                  userId={user!.id}
+                  businessId={business.id}
+                  currentLogoUrl={business.logo_url}
+                  currentBannerUrl={business.banner_url}
+                />
+              ) : (
+                <div className="text-sm text-muted-foreground p-4 bg-muted/40 rounded-lg text-center border border-dashed border-border">
+                  Please create your business profile below first before uploading images.
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Owner info — read-only */}
           <Card className="shadow-sm">
             <CardHeader>
