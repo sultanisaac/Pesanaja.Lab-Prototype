@@ -9,6 +9,7 @@ export async function login(formData: FormData) {
 
   const email = formData.get('email') as string
   const password = formData.get('password') as string
+  const attempts = parseInt(formData.get('attempts') as string || '0', 10)
 
   const { error } = await supabase.auth.signInWithPassword({
     email,
@@ -16,7 +17,11 @@ export async function login(formData: FormData) {
   })
 
   if (error) {
-    return redirect('/login?error=Could not authenticate user')
+    const newAttempts = attempts + 1
+    if (newAttempts >= 3) {
+      return redirect('/forgot-password')
+    }
+    return redirect(`/login?error=Wrong email or password&attempts=${newAttempts}`)
   }
 
   revalidatePath('/', 'layout')
@@ -85,4 +90,26 @@ export async function signInWithGoogle() {
   if (data.url) {
     redirect(data.url)
   }
+}
+
+export async function resetPassword(formData: FormData) {
+  const supabase = await createClient()
+  const email = formData.get('email') as string
+
+  const getBaseUrl = () => {
+    if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL
+    if (process.env.NEXT_PUBLIC_VERCEL_URL) return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+    if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
+    return 'http://localhost:3000'
+  }
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${getBaseUrl()}/dashboard/profile`,
+  })
+
+  if (error) {
+    return redirect(`/forgot-password?error=${encodeURIComponent(error.message)}`)
+  }
+
+  redirect('/forgot-password?success=true')
 }
