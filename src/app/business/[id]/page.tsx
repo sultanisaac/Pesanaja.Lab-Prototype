@@ -3,6 +3,7 @@ import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
 import { notFound } from 'next/navigation'
 import { BusinessStorefront } from './BusinessStorefront'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -12,31 +13,36 @@ export default async function BusinessDetailPage({ params }: PageProps) {
   const { id } = await params
   const supabase = await createClient()
 
-  // Fetch business with owner profile
   const { data: business, error } = await supabase
     .from('businesses')
     .select(`
       id, name, description, contact_email, contact_phone,
       status, is_active, logo_url, banner_url, created_at, operating_hours,
-      profiles ( first_name, last_name, email, avatar_url ),
-      services ( id, name, description, price, duration_minutes, is_active )
+      profiles ( first_name, last_name, email, avatar_url )
     `)
     .eq('id', id)
     .single()
 
   if (error || !business) notFound()
 
+  const supabaseAdmin = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
   // Fetch extra data for the storefront
   const { data: { user } } = await supabase.auth.getUser()
   
-  const [reviewsResponse, addressesResponse, favoriteResponse] = await Promise.all([
+  const [reviewsResponse, addressesResponse, servicesResponse, favoriteResponse] = await Promise.all([
     supabase.from('reviews').select('id, rating, comment, created_at, customer:profiles(first_name, last_name)').eq('business_id', id),
-    supabase.from('addresses').select('id, street_address, city, state, postal_code').eq('business_id', id),
+    supabaseAdmin.from('addresses').select('id, street_address, city, state, postal_code').eq('business_id', id),
+    supabaseAdmin.from('services').select('id, name, description, price, duration_minutes, is_active').eq('business_id', id),
     user ? supabase.from('favorites').select('id').eq('business_id', id).eq('customer_id', user.id).single() : Promise.resolve({ data: null })
   ])
 
   const reviews = reviewsResponse.data || []
   const addresses = addressesResponse.data || []
+  const services = servicesResponse.data || []
   const isFavorite = !!favoriteResponse.data
 
   return (
@@ -46,7 +52,7 @@ export default async function BusinessDetailPage({ params }: PageProps) {
       <main className="flex-1">
         <BusinessStorefront 
           business={business}
-          services={business.services || []}
+          services={services}
           reviews={reviews as unknown as { id: string; rating: number; comment: string | null; created_at: string; customer: { first_name: string | null; last_name: string | null; } | null; }[]}
           addresses={addresses}
           isFavorite={isFavorite}

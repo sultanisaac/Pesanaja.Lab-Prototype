@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Clock, Star, MapPin, Heart, ArrowLeft, Loader2, Info } from 'lucide-react'
+import { Clock, Star, MapPin, Heart, ArrowLeft, Loader2, Info, Mail, Phone } from 'lucide-react'
 import { createBooking, toggleFavorite } from './actions'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -32,6 +32,7 @@ type BusinessStorefrontProps = {
     banner_url: string | null
     logo_url: string | null
     contact_phone: string | null
+    contact_email: string | null
     operating_hours?: Record<string, { isOpen: boolean; openTime: string; closeTime: string }>
   }
   services: Service[]
@@ -297,6 +298,23 @@ export function BusinessStorefront({ business, services, reviews, addresses, isF
               <CardTitle className="text-lg">Contact & Info</CardTitle>
             </CardHeader>
             <CardContent className="pt-4 space-y-4">
+              {(business.contact_email || business.contact_phone) && (
+                <div className="space-y-3 pb-4 border-b border-border/50">
+                  <p className="text-sm font-medium text-foreground">Get in touch</p>
+                  {business.contact_email && (
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <Mail className="h-4 w-4 text-primary shrink-0" />
+                      <a href={`mailto:${business.contact_email}`} className="hover:text-primary hover:underline transition-colors">{business.contact_email}</a>
+                    </div>
+                  )}
+                  {business.contact_phone && (
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <Phone className="h-4 w-4 text-primary shrink-0" />
+                      <a href={`tel:${business.contact_phone}`} className="hover:text-primary hover:underline transition-colors">{business.contact_phone}</a>
+                    </div>
+                  )}
+                </div>
+              )}
               {addresses.length > 0 && (
                 <div className="flex items-start gap-3">
                   <MapPin className="h-5 w-5 text-primary shrink-0 mt-0.5" />

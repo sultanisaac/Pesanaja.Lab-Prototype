@@ -9,6 +9,7 @@ import { Search, MapPin, Filter, Star, BadgeCheck, Heart, SlidersHorizontal } fr
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 export default async function SearchPage(props: {
   searchParams: Promise<{ q?: string; location?: string }>;
@@ -17,18 +18,20 @@ export default async function SearchPage(props: {
   const query = searchParams.q || "";
   const location = searchParams.location || "";
 
-  const supabase = await createClient();
+  const supabaseAdmin = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
 
-  // Basic search query for verified and active businesses
-  let dbQuery = supabase
+  // Basic search query for active businesses
+  let dbQuery = supabaseAdmin
     .from('businesses')
     .select(`
       id, name, description, banner_url, logo_url,
       services ( price ),
       addresses ( city, state )
     `)
-    .eq('is_active', true)
-    .eq('status', 'verified');
+    .eq('is_active', true);
 
   if (query) {
     dbQuery = dbQuery.ilike('name', `%${query}%`);

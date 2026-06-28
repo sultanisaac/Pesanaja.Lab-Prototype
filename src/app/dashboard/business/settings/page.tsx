@@ -6,6 +6,7 @@ import { BusinessImageUpload } from '@/components/dashboard/BusinessImageUpload'
 import { OperatingHoursForm } from '@/components/dashboard/OperatingHoursForm'
 import { ServicesManager } from '@/components/dashboard/ServicesManager'
 import { LocationsManager } from '@/components/dashboard/LocationsManager'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 export default async function BusinessSettingsPage() {
   const supabase = await createClient()
@@ -26,10 +27,14 @@ export default async function BusinessSettingsPage() {
   let services = []
   let addresses = []
   if (business) {
-    const { data: sData } = await supabase.from('services').select('*').eq('business_id', business.id).order('created_at', { ascending: true })
+    const supabaseAdmin = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+    const { data: sData } = await supabaseAdmin.from('services').select('*').eq('business_id', business.id).order('created_at', { ascending: true })
     services = sData || []
     
-    const { data: aData } = await supabase.from('addresses').select('*').eq('business_id', business.id).order('created_at', { ascending: true })
+    const { data: aData } = await supabaseAdmin.from('addresses').select('*').eq('business_id', business.id).order('created_at', { ascending: true })
     addresses = aData || []
   }
 
