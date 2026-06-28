@@ -5,14 +5,24 @@ import { Button } from '@/components/ui/button'
 
 export default async function AdminDashboard() {
   const supabase = await createClient()
-  await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('first_name, last_name, email')
+    .eq('id', user?.id)
+    .single()
+
+  const displayName = profile?.first_name
+    ? `${profile.first_name} ${profile.last_name ?? ''}`.trim()
+    : user?.user_metadata?.first_name ?? 'Admin'
 
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-heading font-bold">Admin Control Center</h1>
-          <p className="text-secondary-foreground">Platform overview and management.</p>
+          <p className="text-secondary-foreground">Welcome, {displayName}. Platform overview and management.</p>
         </div>
       </div>
 

@@ -46,15 +46,27 @@ export default function RegisterPage() {
             <form action={signup} className="space-y-6">
               <input type="hidden" name="role" value="customer" />
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
-                  <Input
-                    id="fullName"
-                    name="fullName"
-                    placeholder="John Doe"
-                    required
-                    className="h-12 bg-white"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="first_name">First Name</Label>
+                    <Input
+                      id="first_name"
+                      name="first_name"
+                      placeholder="John"
+                      required
+                      className="h-12 bg-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="last_name">Last Name</Label>
+                    <Input
+                      id="last_name"
+                      name="last_name"
+                      placeholder="Doe"
+                      required
+                      className="h-12 bg-white"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
@@ -89,15 +101,27 @@ export default function RegisterPage() {
             <form action={signup} className="space-y-6">
               <input type="hidden" name="role" value="business" />
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="business-fullName">Full Name</Label>
-                  <Input
-                    id="business-fullName"
-                    name="fullName"
-                    placeholder="Jane Smith"
-                    required
-                    className="h-12 bg-white"
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="business-first_name">First Name</Label>
+                    <Input
+                      id="business-first_name"
+                      name="first_name"
+                      placeholder="Jane"
+                      required
+                      className="h-12 bg-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="business-last_name">Last Name</Label>
+                    <Input
+                      id="business-last_name"
+                      name="last_name"
+                      placeholder="Smith"
+                      required
+                      className="h-12 bg-white"
+                    />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="business-email">Business Email</Label>

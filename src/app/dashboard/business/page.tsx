@@ -10,12 +10,22 @@ export default async function BusinessDashboard() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('first_name, last_name, email')
+    .eq('id', user?.id)
+    .single()
+
+  const displayName = profile?.first_name
+    ? `${profile.first_name} ${profile.last_name ?? ''}`.trim()
+    : user?.user_metadata?.first_name ?? 'Owner'
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-heading font-bold">Business Hub</h1>
-          <p className="text-secondary-foreground">Welcome back, {user?.user_metadata?.full_name || 'Owner'}. Here&apos;s your business performance.</p>
+          <p className="text-secondary-foreground">Welcome back, {displayName}. Here&apos;s your business performance.</p>
         </div>
         <Link href="/dashboard/business/settings" className={cn(buttonVariants())}><Briefcase className="mr-2 h-4 w-4" /> Manage Business</Link>
       </div>
