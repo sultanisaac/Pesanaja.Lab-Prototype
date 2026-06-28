@@ -138,12 +138,9 @@ export default function Home() {
           </div>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
             {CATEGORIES.map((category, index) => (
-              <motion.div
+              <div
                 key={category.name}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.1 }}
-                viewport={{ once: true }}
+                className="group cursor-pointer transition-all hover:border-primary/50 hover:shadow-md animate-in fade-in zoom-in-95 duration-500"
               >
                 <Link href={`/categories/${category.name.toLowerCase().replace(/\s+/g, '-')}`}>
                   <Card className="group cursor-pointer transition-all hover:border-primary/50 hover:shadow-md">
@@ -156,7 +153,7 @@ export default function Home() {
                     </CardContent>
                   </Card>
                 </Link>
-              </motion.div>
+              </div>
             ))}
           </div>
         </section>
@@ -176,12 +173,9 @@ export default function Home() {
 
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
               {TRENDING_BUSINESSES.map((business, index) => (
-                <motion.div
+                <div
                   key={business.id}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
-                  viewport={{ once: true }}
+                  className="overflow-hidden transition-all hover:shadow-lg animate-in fade-in zoom-in-95 duration-500"
                 >
                   <Card className="overflow-hidden transition-all hover:shadow-lg">
                     <div className="relative h-48 w-full">
@@ -246,7 +240,7 @@ export default function Home() {
                       </Link>
                     </CardFooter>
                   </Card>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
