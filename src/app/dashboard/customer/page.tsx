@@ -9,11 +9,21 @@ export default async function CustomerDashboard() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('first_name, last_name, email')
+    .eq('id', user?.id)
+    .single()
+
+  const displayName = profile?.first_name
+    ? `${profile.first_name} ${profile.last_name ?? ''}`.trim()
+    : user?.user_metadata?.first_name ?? 'Customer'
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-heading font-bold">Welcome back, {user?.user_metadata?.full_name || 'Customer'}!</h1>
+          <h1 className="text-3xl font-heading font-bold">Welcome back, {displayName}!</h1>
           <p className="text-secondary-foreground">Here is an overview of your bookings and activities.</p>
         </div>
         <Link href="/search" className={cn(buttonVariants())}><Search className="mr-2 h-4 w-4" /> Find Services</Link>
