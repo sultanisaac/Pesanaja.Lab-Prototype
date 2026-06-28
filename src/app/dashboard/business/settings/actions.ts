@@ -57,7 +57,7 @@ export async function updateOperatingHours(formData: FormData) {
     revalidatePath('/dashboard/business/settings')
     revalidatePath('/business/[id]', 'page')
     return { success: true }
-  } catch (err: any) {
+  } catch {
     return { error: 'Failed to update operating hours' }
   }
 }

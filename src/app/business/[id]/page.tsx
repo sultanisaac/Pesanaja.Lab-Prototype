@@ -46,8 +46,8 @@ export default async function BusinessDetailPage({ params }: PageProps) {
       <main className="flex-1">
         <BusinessStorefront 
           business={business}
-          services={services}
-          reviews={reviews as any}
+          services={business.services || []}
+          reviews={reviews as unknown as { id: string; rating: number; comment: string | null; created_at: string; customer: { first_name: string | null; last_name: string | null; } | null; }[]}
           address={address}
           isFavorite={isFavorite}
           isAuthenticated={!!user}

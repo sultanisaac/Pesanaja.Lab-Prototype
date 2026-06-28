@@ -26,9 +26,9 @@ const defaultHours: OperatingHours = {
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const
 
-export function OperatingHoursForm({ currentHours }: { currentHours: any }) {
+export function OperatingHoursForm({ currentHours }: { currentHours: Partial<OperatingHours> | null }) {
   const [hours, setHours] = useState<OperatingHours>(
-    currentHours && Object.keys(currentHours).length > 0 ? currentHours : defaultHours
+    currentHours && Object.keys(currentHours).length > 0 ? (currentHours as OperatingHours) : defaultHours
   )
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)

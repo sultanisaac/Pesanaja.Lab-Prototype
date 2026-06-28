@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { CalendarIcon, Clock, Star, MapPin, Heart, ArrowLeft, Loader2, Info } from 'lucide-react'
+import { Clock, Star, MapPin, Heart, ArrowLeft, Loader2, Info } from 'lucide-react'
 import { createBooking, toggleFavorite } from './actions'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -32,11 +32,11 @@ type BusinessStorefrontProps = {
     banner_url: string | null
     logo_url: string | null
     contact_phone: string | null
-    operating_hours?: any
+    operating_hours?: Record<string, { isOpen: boolean; openTime: string; closeTime: string }>
   }
   services: Service[]
   reviews: Review[]
-  address: { street_address: string; city: string; state: string } | null
+  address: { street_address: string; city: string; state: string; postal_code?: string | null } | null
   isFavorite: boolean
   isAuthenticated: boolean
 }
@@ -71,7 +71,7 @@ export function BusinessStorefront({ business, services, reviews, address, isFav
     // Duration step (e.g., if service is 30 mins, step is 30. If 60, step is 60. Default 30 if null)
     const stepMins = selectedService?.duration_minutes || 30
     
-    let current = new Date(`${selectedDate}T${dayConfig.openTime}:00`)
+    const current = new Date(`${selectedDate}T${dayConfig.openTime}:00`)
     const endTime = new Date(`${selectedDate}T${dayConfig.closeTime}:00`)
     const now = new Date()
 
@@ -315,7 +315,7 @@ export function BusinessStorefront({ business, services, reviews, address, isFav
                     <p className="text-sm font-medium text-foreground mb-2">Operating Hours</p>
                     <div className="space-y-1">
                       {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map((day) => {
-                        const config = business.operating_hours[day]
+                        const config = business.operating_hours?.[day]
                         if (!config) return null
                         return (
                           <div key={day} className="flex justify-between text-sm">
@@ -462,7 +462,7 @@ export function BusinessStorefront({ business, services, reviews, address, isFav
 }
 
 // Temporary CheckCircle2 icon since lucide-react might not have it in this exact casing if older, using standard Check
-function CheckCircle2(props: any) {
+function CheckCircle2(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}

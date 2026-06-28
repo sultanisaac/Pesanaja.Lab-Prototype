@@ -73,7 +73,7 @@ export default async function BusinessAppointmentsPage() {
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
         <Card className="shadow-sm border-l-4 border-l-primary">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Today's Appointments</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Today&apos;s Appointments</CardTitle>
             <CalendarIcon className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>

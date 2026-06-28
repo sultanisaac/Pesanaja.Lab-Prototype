@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Calendar as CalendarIcon, Clock, CheckCircle2, XCircle, Search, User, Phone, Plus, MapPin, Loader2 } from 'lucide-react'
+import { Calendar as CalendarIcon, Clock, XCircle, User, Phone, Plus, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { updateBookingStatus, createManualBooking } from './actions'
 
@@ -70,7 +70,7 @@ export function AppointmentsClient({
           {['all', 'pending', 'confirmed', 'completed', 'cancelled'].map((f) => (
             <button
               key={f}
-              onClick={() => setFilter(f as any)}
+              onClick={() => setFilter(f as typeof filter)}
               className={cn(
                 'px-4 py-1.5 rounded-lg text-sm font-medium transition-all capitalize',
                 filter === f
@@ -109,7 +109,6 @@ export function AppointmentsClient({
       ) : (
         <div className="grid gap-4">
           {filteredBookings.map((booking) => {
-            const isPast = new Date(booking.scheduled_at) < new Date()
             const customerName = booking.customer?.first_name 
               ? `${booking.customer.first_name} ${booking.customer.last_name || ''}` 
               : booking.customer?.email.split('@')[0] || 'Unknown Customer'
@@ -155,7 +154,7 @@ export function AppointmentsClient({
                       </div>
                       {booking.notes && (
                         <p className="text-xs text-muted-foreground mt-2 italic border-l-2 border-primary/20 pl-2">
-                          "{booking.notes}"
+                          &quot;{booking.notes}&quot;
                         </p>
                       )}
                     </div>
