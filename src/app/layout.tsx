@@ -18,6 +18,8 @@ export const metadata: Metadata = {
   description: "Marketplace for trusted local services.",
 };
 
+import { TestAccountsWidget } from "@/components/shared/TestAccountsWidget";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -33,6 +35,7 @@ export default function RootLayout({
         )}
       >
         {children}
+        <TestAccountsWidget />
       </body>
     </html>
   );
