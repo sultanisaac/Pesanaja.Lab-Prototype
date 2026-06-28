@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
@@ -159,7 +160,7 @@ export function Sidebar({ role, displayName, email, avatarUrl }: SidebarProps) {
             <div className="flex items-center gap-3">
               {avatarUrl ? (
                 <div className="h-9 w-9 shrink-0 relative rounded-full overflow-hidden border border-border">
-                  <img src={avatarUrl} alt={displayName} className="object-cover w-full h-full" />
+                  <Image src={avatarUrl} alt={displayName} fill className="object-cover" />
                 </div>
               ) : (
                 <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm shrink-0">
@@ -175,7 +176,7 @@ export function Sidebar({ role, displayName, email, avatarUrl }: SidebarProps) {
             <div className="flex justify-center">
               {avatarUrl ? (
                 <div className="h-9 w-9 shrink-0 relative rounded-full overflow-hidden border border-border">
-                  <img src={avatarUrl} alt={displayName} className="object-cover w-full h-full" />
+                  <Image src={avatarUrl} alt={displayName} fill className="object-cover" />
                 </div>
               ) : (
                 <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm">

@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Zap, CheckCircle2, Star, BarChart2, Users, Shield, ArrowRight } from 'lucide-react'
+import { Zap, CheckCircle2, BarChart2, Shield, ArrowRight } from 'lucide-react'
 import { CheckoutButton } from '@/components/CheckoutButton'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
