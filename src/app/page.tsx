@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+
 import { Search, MapPin, Star, BadgeCheck, ShieldCheck, Heart } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -137,7 +137,7 @@ export default function Home() {
             <p className="text-secondary-foreground">Browse services by popular categories</p>
           </div>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
-            {CATEGORIES.map((category, index) => (
+            {CATEGORIES.map((category) => (
               <div
                 key={category.name}
                 className="group cursor-pointer transition-all hover:border-primary/50 hover:shadow-md animate-in fade-in zoom-in-95 duration-500"
@@ -172,7 +172,7 @@ export default function Home() {
             </div>
 
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {TRENDING_BUSINESSES.map((business, index) => (
+              {TRENDING_BUSINESSES.map((business) => (
                 <div
                   key={business.id}
                   className="overflow-hidden transition-all hover:shadow-lg animate-in fade-in zoom-in-95 duration-500"
