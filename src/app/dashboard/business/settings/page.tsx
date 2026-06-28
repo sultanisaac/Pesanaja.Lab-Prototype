@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Briefcase, Mail, Phone, CheckCircle2, Circle, BadgeCheck } from 'lucide-react'
 import { updateBusinessProfile } from './actions'
 import { BusinessImageUpload } from '@/components/dashboard/BusinessImageUpload'
+import { OperatingHoursForm } from '@/components/dashboard/OperatingHoursForm'
 
 export default async function BusinessSettingsPage() {
   const supabase = await createClient()
@@ -16,7 +17,7 @@ export default async function BusinessSettingsPage() {
 
   const { data: business } = await supabase
     .from('businesses')
-    .select('id, name, description, contact_email, contact_phone, status, is_active, logo_url, banner_url')
+    .select('id, name, description, contact_email, contact_phone, status, is_active, logo_url, banner_url, operating_hours')
     .eq('owner_id', user?.id)
     .single()
 
@@ -185,6 +186,9 @@ export default async function BusinessSettingsPage() {
               </form>
             </CardContent>
           </Card>
+
+          {/* Operating Hours Form */}
+          <OperatingHoursForm currentHours={business?.operating_hours} />
         </div>
 
         {/* Right sidebar — 1/3 */}
