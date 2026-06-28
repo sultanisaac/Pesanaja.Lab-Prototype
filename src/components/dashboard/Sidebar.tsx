@@ -17,6 +17,7 @@ import {
   BarChart2,
   Zap,
   User,
+  Settings2,
   Menu,
   X,
   ChevronLeft,
@@ -43,6 +44,7 @@ const NAV_ITEMS: Record<UserRole, NavItem[]> = {
     { label: 'Overview', href: '/dashboard/business', icon: LayoutDashboard },
     { label: 'Appointments', href: '/dashboard/business/appointments', icon: Calendar },
     { label: 'Analytics', href: '/dashboard/business/analytics', icon: BarChart2 },
+    { label: 'Business Settings', href: '/dashboard/business/settings', icon: Settings2 },
     { label: 'Subscription', href: '/dashboard/business/subscription', icon: Zap },
   ],
   admin: [
