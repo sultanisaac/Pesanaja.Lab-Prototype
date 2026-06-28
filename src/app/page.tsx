@@ -283,8 +283,8 @@ export default async function Home() {
               <div className="space-y-8">
                 {[
                   { title: "Register", desc: "Create your business account.", step: "1" },
-                  { title: "Verify", desc: "Submit documents for verification.", step: "2" },
-                  { title: "Grow", desc: "Publish your profile and get customers.", step: "3" },
+                  { title: "Setup", desc: "Add your services, prices, and locations.", step: "2" },
+                  { title: "Grow", desc: "Publish your profile and get booked.", step: "3" },
                 ].map((item) => (
                   <div key={item.step} className="flex gap-4">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand font-bold text-primary">
