@@ -5,7 +5,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; attempts?: string }>;
+}) {
+  const params = await searchParams;
+  const error = params?.error;
+  const attempts = params?.attempts || "0";
+
   return (
     <Card className="border-0 shadow-none bg-transparent">
       <CardHeader className="px-0 pt-0">
@@ -35,6 +43,12 @@ export default function LoginPage() {
           </div>
 
           <form action={login} className="space-y-6">
+            <input type="hidden" name="attempts" value={attempts} />
+            {error && (
+              <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-md">
+                {error}
+              </div>
+            )}
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>

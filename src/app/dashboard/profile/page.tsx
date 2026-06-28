@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { User, Mail, Shield, Phone, Lock } from 'lucide-react'
 import { updateProfile, updatePassword } from './actions'
+import { AvatarUpload } from '@/components/dashboard/AvatarUpload'
 
 const roleLabels: Record<string, { label: string; color: string }> = {
   customer: { label: 'Customer', color: 'bg-primary/10 text-primary' },
@@ -15,12 +16,16 @@ export default async function ProfileSettingsPage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('first_name, last_name, email, role, phone_number, created_at')
+    .select('first_name, last_name, email, role, phone_number, created_at, avatar_url')
     .eq('id', user?.id)
     .single()
 
   const isGoogleUser = user?.app_metadata?.provider === 'google'
   const roleInfo = roleLabels[profile?.role ?? 'customer']
+  
+  const displayName = profile?.first_name 
+    ? `${profile.first_name} ${profile.last_name ?? ''}`.trim() 
+    : user?.email?.split('@')[0] ?? 'User'
 
   return (
     <div className="space-y-8 max-w-2xl">
@@ -31,6 +36,16 @@ export default async function ProfileSettingsPage() {
         </h1>
         <p className="text-muted-foreground text-sm mt-1">Manage your personal information and account security.</p>
       </div>
+
+      <Card className="shadow-sm">
+        <CardContent className="pt-6">
+          <AvatarUpload 
+            userId={user!.id} 
+            currentAvatarUrl={profile?.avatar_url} 
+            displayName={displayName} 
+          />
+        </CardContent>
+      </Card>
 
       {/* Account Info — read-only */}
       <Card className="shadow-sm">

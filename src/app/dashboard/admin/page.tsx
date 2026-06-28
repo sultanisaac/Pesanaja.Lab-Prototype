@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ShieldCheck, Users, Briefcase, Activity, BarChart2 } from 'lucide-react'
+import { ShieldCheck, Users, Briefcase, Activity, BarChart2, ArrowUpCircle } from 'lucide-react'
 import Link from 'next/link'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -25,11 +25,13 @@ export default async function AdminDashboard() {
     { count: totalBusinesses },
     { count: pendingVerifications },
     { count: totalBookings },
+    { count: pendingUpgrades },
   ] = await Promise.all([
     supabase.from('profiles').select('*', { count: 'exact', head: true }),
     supabase.from('businesses').select('*', { count: 'exact', head: true }),
     supabase.from('businesses').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
     supabase.from('bookings').select('*', { count: 'exact', head: true }),
+    supabase.from('business_upgrade_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
   ])
 
   const stats = [
@@ -65,6 +67,14 @@ export default async function AdminDashboard() {
       color: 'text-success',
       bg: 'bg-success/10',
     },
+    {
+      label: 'Upgrade Requests',
+      value: (pendingUpgrades ?? 0).toLocaleString(),
+      sub: pendingUpgrades ? 'Awaiting review' : 'All reviewed',
+      icon: ArrowUpCircle,
+      color: pendingUpgrades ? 'text-warning' : 'text-success',
+      bg: pendingUpgrades ? 'bg-warning/10' : 'bg-success/10',
+    },
   ]
 
   // Recent business registrations (live)
@@ -99,7 +109,7 @@ export default async function AdminDashboard() {
       </div>
 
       {/* Live Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         {stats.map((s) => {
           const Icon = s.icon
           return (
@@ -162,10 +172,11 @@ export default async function AdminDashboard() {
           </CardHeader>
           <CardContent className="space-y-2">
             {[
-              { label: 'Manage All Users', href: '/dashboard/admin/users', icon: Users, color: 'text-primary', bg: 'bg-primary/10' },
-              { label: 'Manage Businesses', href: '/dashboard/admin/businesses', icon: Briefcase, color: 'text-warning', bg: 'bg-warning/10' },
-              { label: 'Pending Verifications', href: '/dashboard/admin/verifications', icon: ShieldCheck, color: 'text-destructive', bg: 'bg-destructive/10' },
-              { label: 'Platform Analytics', href: '/dashboard/admin/analytics', icon: BarChart2, color: 'text-success', bg: 'bg-success/10' },
+              { label: 'Manage All Users',       href: '/dashboard/admin/users',                      icon: Users,         color: 'text-primary',     bg: 'bg-primary/10',     badge: null },
+              { label: 'Manage Businesses',       href: '/dashboard/admin/businesses',                 icon: Briefcase,     color: 'text-warning',     bg: 'bg-warning/10',     badge: null },
+              { label: 'Pending Verifications',   href: '/dashboard/admin/verifications',              icon: ShieldCheck,   color: 'text-destructive', bg: 'bg-destructive/10', badge: pendingVerifications ? String(pendingVerifications) : null },
+              { label: 'Upgrade Requests',        href: '/dashboard/admin/verifications?tab=upgrades', icon: ArrowUpCircle, color: 'text-warning',     bg: 'bg-warning/10',     badge: pendingUpgrades ? String(pendingUpgrades) : null },
+              { label: 'Platform Analytics',      href: '/dashboard/admin/analytics',                  icon: BarChart2,     color: 'text-success',     bg: 'bg-success/10',     badge: null },
             ].map((link) => {
               const Icon = link.icon
               return (
@@ -177,7 +188,12 @@ export default async function AdminDashboard() {
                   <div className={cn('h-8 w-8 rounded-lg flex items-center justify-center', link.bg)}>
                     <Icon className={cn('h-4 w-4', link.color)} />
                   </div>
-                  {link.label}
+                  <span className="flex-1">{link.label}</span>
+                  {link.badge && (
+                    <span className="px-2 py-0.5 text-[10px] font-bold bg-warning text-white rounded-full">
+                      {link.badge}
+                    </span>
+                  )}
                 </Link>
               )
             })}
