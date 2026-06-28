@@ -7,10 +7,12 @@
 CREATE OR REPLACE FUNCTION public.handle_new_user() 
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, full_name, role)
+  INSERT INTO public.profiles (id, first_name, last_name, email, role)
   VALUES (
     NEW.id,
-    NEW.raw_user_meta_data->>'full_name',
+    NEW.raw_user_meta_data->>'first_name',
+    NEW.raw_user_meta_data->>'last_name',
+    NEW.email,
     -- Cast the text role to the user_role ENUM safely. Default to 'customer' if null or invalid.
     COALESCE((NEW.raw_user_meta_data->>'role')::public.user_role, 'customer'::public.user_role)
   );
