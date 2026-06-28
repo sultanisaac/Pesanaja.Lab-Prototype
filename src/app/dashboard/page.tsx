@@ -10,7 +10,16 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  const role = data.user.user_metadata?.role || 'customer'
+  // Always read role from the profiles table — this is the single source of truth.
+  // user_metadata.role is only set for users who registered via the app form,
+  // so users created from the Supabase dashboard would always be missing it.
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', data.user.id)
+    .single()
+
+  const role = profile?.role ?? 'customer'
 
   if (role === 'admin') {
     redirect('/dashboard/admin')
