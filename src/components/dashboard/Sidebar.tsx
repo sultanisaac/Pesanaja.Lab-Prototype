@@ -72,9 +72,10 @@ interface SidebarProps {
   role: UserRole
   displayName: string
   email: string
+  avatarUrl?: string | null
 }
 
-export function Sidebar({ role, displayName, email }: SidebarProps) {
+export function Sidebar({ role, displayName, email, avatarUrl }: SidebarProps) {
   const pathname = usePathname()
   // Default: NOT collapsed — safer default, avoids flash of wrong layout
   const [collapsed, setCollapsed] = useState(false)
@@ -156,9 +157,15 @@ export function Sidebar({ role, displayName, email }: SidebarProps) {
         <div className={cn('border-b border-border shrink-0 py-3', showLabels ? 'px-3' : 'px-2')}>
           {showLabels ? (
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm shrink-0">
-                {initials}
-              </div>
+              {avatarUrl ? (
+                <div className="h-9 w-9 shrink-0 relative rounded-full overflow-hidden border border-border">
+                  <img src={avatarUrl} alt={displayName} className="object-cover w-full h-full" />
+                </div>
+              ) : (
+                <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm shrink-0">
+                  {initials}
+                </div>
+              )}
               <div className="min-w-0 flex-1">
                 <p className="font-medium text-sm text-foreground truncate">{displayName}</p>
                 <p className="text-xs text-muted-foreground truncate">{email}</p>
@@ -166,9 +173,15 @@ export function Sidebar({ role, displayName, email }: SidebarProps) {
             </div>
           ) : (
             <div className="flex justify-center">
-              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm">
-                {initials}
-              </div>
+              {avatarUrl ? (
+                <div className="h-9 w-9 shrink-0 relative rounded-full overflow-hidden border border-border">
+                  <img src={avatarUrl} alt={displayName} className="object-cover w-full h-full" />
+                </div>
+              ) : (
+                <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm">
+                  {initials}
+                </div>
+              )}
             </div>
           )}
           {showLabels && (

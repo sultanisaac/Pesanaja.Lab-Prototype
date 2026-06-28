@@ -10,9 +10,9 @@ export async function updateProfile(formData: FormData): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const firstName = formData.get('firstName') as string
-  const lastName = formData.get('lastName') as string
-  const phone = formData.get('phone') as string
+  const firstName = formData.get('first_name') as string
+  const lastName = formData.get('last_name') as string
+  const phone = formData.get('phone_number') as string
 
   const { error } = await supabase
     .from('profiles')
