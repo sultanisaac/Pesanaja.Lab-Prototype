@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 const POPULAR_SEARCHES = ["Dentist", "Beauty Salon", "Car Wash", "Clinic", "Restaurant", "Photographer"];
 
@@ -22,12 +23,15 @@ const CATEGORIES = [
 ];
 
 export default async function Home() {
-  const supabase = await createClient();
-  const { data: results } = await supabase
+  const supabaseAdmin = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  const { data: results } = await supabaseAdmin
     .from('businesses')
     .select('*, services(*), addresses(*)')
     .eq('is_active', true)
-    .eq('status', 'verified')
     .limit(3);
 
   const trendingBusinesses = results || [];
