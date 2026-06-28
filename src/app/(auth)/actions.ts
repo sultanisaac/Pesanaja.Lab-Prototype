@@ -57,3 +57,26 @@ export async function logout() {
   await supabase.auth.signOut()
   redirect('/login')
 }
+
+export async function signInWithGoogle() {
+  const supabase = await createClient()
+  
+  // This uses a relative path that Supabase interprets with its own site url
+  // Or we can provide a fully qualified URL if NEXT_PUBLIC_SITE_URL is set
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+  
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${baseUrl}/api/auth/callback`,
+    },
+  })
+
+  if (error) {
+    return redirect('/login?error=Could not authenticate with Google')
+  }
+
+  if (data.url) {
+    redirect(data.url)
+  }
+}
