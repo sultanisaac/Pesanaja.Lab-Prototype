@@ -8,7 +8,6 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import Image from "next/image";
-import { createClient } from "@/lib/supabase/server";
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 const POPULAR_SEARCHES = ["Dentist", "Beauty Salon", "Car Wash", "Clinic", "Restaurant", "Photographer"];
