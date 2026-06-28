@@ -117,7 +117,7 @@ export function BusinessImageUpload({
     aspectClass: string,
     isDragging: boolean,
     setDragging: (v: boolean) => void,
-    inputRef: React.RefObject<HTMLInputElement | null>,
+    inputRef: React.RefObject<HTMLInputElement>,
   ) => {
     const state = currentState(type)
     return (
