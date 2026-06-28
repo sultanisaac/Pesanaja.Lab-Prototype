@@ -4,6 +4,9 @@ import { Briefcase, Mail, Phone, CheckCircle2, Circle, BadgeCheck } from 'lucide
 import { updateBusinessProfile } from './actions'
 import { BusinessImageUpload } from '@/components/dashboard/BusinessImageUpload'
 import { OperatingHoursForm } from '@/components/dashboard/OperatingHoursForm'
+import { ServicesManager } from '@/components/dashboard/ServicesManager'
+import { LocationsManager } from '@/components/dashboard/LocationsManager'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 export default async function BusinessSettingsPage() {
   const supabase = await createClient()
@@ -20,6 +23,20 @@ export default async function BusinessSettingsPage() {
     .select('id, name, description, contact_email, contact_phone, status, is_active, logo_url, banner_url, operating_hours')
     .eq('owner_id', user?.id)
     .single()
+
+  let services = []
+  let addresses = []
+  if (business) {
+    const supabaseAdmin = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+    const { data: sData } = await supabaseAdmin.from('services').select('*').eq('business_id', business.id).order('created_at', { ascending: true })
+    services = sData || []
+    
+    const { data: aData } = await supabaseAdmin.from('addresses').select('*').eq('business_id', business.id).order('created_at', { ascending: true })
+    addresses = aData || []
+  }
 
   const ownerName = profile
     ? `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim()
@@ -189,6 +206,14 @@ export default async function BusinessSettingsPage() {
 
           {/* Operating Hours Form */}
           <OperatingHoursForm currentHours={business?.operating_hours} />
+
+          {/* Services and Locations Managers */}
+          {business && (
+            <>
+              <ServicesManager businessId={business.id} services={services} />
+              <LocationsManager businessId={business.id} locations={addresses} />
+            </>
+          )}
         </div>
 
         {/* Right sidebar — 1/3 */}

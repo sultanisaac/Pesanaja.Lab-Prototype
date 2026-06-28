@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Clock, Star, MapPin, Heart, ArrowLeft, Loader2, Info } from 'lucide-react'
+import { Clock, Star, MapPin, Heart, ArrowLeft, Loader2, Info, Mail, Phone } from 'lucide-react'
 import { createBooking, toggleFavorite } from './actions'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -32,16 +32,17 @@ type BusinessStorefrontProps = {
     banner_url: string | null
     logo_url: string | null
     contact_phone: string | null
+    contact_email: string | null
     operating_hours?: Record<string, { isOpen: boolean; openTime: string; closeTime: string }>
   }
   services: Service[]
   reviews: Review[]
-  address: { street_address: string; city: string; state: string; postal_code?: string | null } | null
+  addresses: { id: string; street_address: string; city: string; state: string; postal_code?: string | null }[]
   isFavorite: boolean
   isAuthenticated: boolean
 }
 
-export function BusinessStorefront({ business, services, reviews, address, isFavorite: initialFavorite, isAuthenticated }: BusinessStorefrontProps) {
+export function BusinessStorefront({ business, services, reviews, addresses, isFavorite: initialFavorite, isAuthenticated }: BusinessStorefrontProps) {
   const router = useRouter()
   const [isFavorite, setIsFavorite] = useState(initialFavorite)
   const [favLoading, setFavLoading] = useState(false)
@@ -184,9 +185,10 @@ export function BusinessStorefront({ business, services, reviews, address, isFav
                 <span className="flex items-center gap-1 bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded-md text-primary">
                   <Star className="h-4 w-4 fill-primary" /> {averageRating} ({reviews.length})
                 </span>
-                {address && (
+                {addresses.length > 0 && (
                   <span className="flex items-center gap-1 bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded-md">
-                    <MapPin className="h-4 w-4" /> {address.city}, {address.state}
+                    <MapPin className="h-4 w-4" /> {addresses[0].city}, {addresses[0].state}
+                    {addresses.length > 1 && ` (+${addresses.length - 1} more)`}
                   </span>
                 )}
               </div>
@@ -296,15 +298,36 @@ export function BusinessStorefront({ business, services, reviews, address, isFav
               <CardTitle className="text-lg">Contact & Info</CardTitle>
             </CardHeader>
             <CardContent className="pt-4 space-y-4">
-              {address && (
+              {(business.contact_email || business.contact_phone) && (
+                <div className="space-y-3 pb-4 border-b border-border/50">
+                  <p className="text-sm font-medium text-foreground">Get in touch</p>
+                  {business.contact_email && (
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <Mail className="h-4 w-4 text-primary shrink-0" />
+                      <a href={`mailto:${business.contact_email}`} className="hover:text-primary hover:underline transition-colors">{business.contact_email}</a>
+                    </div>
+                  )}
+                  {business.contact_phone && (
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <Phone className="h-4 w-4 text-primary shrink-0" />
+                      <a href={`tel:${business.contact_phone}`} className="hover:text-primary hover:underline transition-colors">{business.contact_phone}</a>
+                    </div>
+                  )}
+                </div>
+              )}
+              {addresses.length > 0 && (
                 <div className="flex items-start gap-3">
                   <MapPin className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">Address</p>
-                    <p className="text-sm text-muted-foreground leading-relaxed mt-1">
-                      {address.street_address}<br/>
-                      {address.city}, {address.state} {address.postal_code || ''}
-                    </p>
+                  <div className="w-full">
+                    <p className="text-sm font-medium text-foreground mb-2">Locations</p>
+                    <div className="space-y-3">
+                      {addresses.map((addr) => (
+                        <p key={addr.id} className="text-sm text-muted-foreground leading-relaxed">
+                          {addr.street_address}<br/>
+                          {addr.city}, {addr.state} {addr.postal_code || ''}
+                        </p>
+                      ))}
+                    </div>
                   </div>
                 </div>
               )}

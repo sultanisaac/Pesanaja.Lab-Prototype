@@ -52,18 +52,6 @@ export function Navbar() {
             >
               Browse Services
             </Link>
-            <Link
-              href="/categories"
-              className="text-sm font-medium text-foreground/60 transition-colors hover:text-primary"
-            >
-              Categories
-            </Link>
-            <Link
-              href="/partner"
-              className="text-sm font-medium text-foreground/60 transition-colors hover:text-primary"
-            >
-              Become a Partner
-            </Link>
           </div>
         </div>
         <div className="flex flex-1 items-center justify-end space-x-4">

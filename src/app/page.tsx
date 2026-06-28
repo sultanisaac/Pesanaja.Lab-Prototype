@@ -1,6 +1,3 @@
-"use client";
-
-
 import { Search, MapPin, Star, BadgeCheck, ShieldCheck, Heart } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +8,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import Image from "next/image";
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 const POPULAR_SEARCHES = ["Dentist", "Beauty Salon", "Car Wash", "Clinic", "Restaurant", "Photographer"];
 
@@ -23,49 +21,20 @@ const CATEGORIES = [
   { name: "Events", icon: Star, count: "310+" },
 ];
 
-const TRENDING_BUSINESSES = [
-  {
-    id: 1,
-    name: "Smile Dental Clinic",
-    category: "Dentist",
-    rating: 4.9,
-    reviews: 128,
-    location: "Jakarta Selatan",
-    isOpen: true,
-    price: "Rp 350.000",
-    verified: true,
-    image: "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=800&auto=format&fit=crop&q=60",
-    logo: "https://images.unsplash.com/photo-1514416432279-50fac261c7dd?w=100&auto=format&fit=crop&q=60"
-  },
-  {
-    id: 2,
-    name: "Glow Beauty Studio",
-    category: "Beauty Salon",
-    rating: 4.8,
-    reviews: 85,
-    location: "Bandung",
-    isOpen: true,
-    price: "Rp 150.000",
-    verified: true,
-    image: "https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&auto=format&fit=crop&q=60",
-    logo: "https://images.unsplash.com/photo-1522337660859-02fbefca4702?w=100&auto=format&fit=crop&q=60"
-  },
-  {
-    id: 3,
-    name: "AutoClean Express",
-    category: "Car Wash",
-    rating: 4.7,
-    reviews: 210,
-    location: "Surabaya",
-    isOpen: false,
-    price: "Rp 50.000",
-    verified: true,
-    image: "https://images.unsplash.com/photo-1601362840469-51e4d8d58785?w=800&auto=format&fit=crop&q=60",
-    logo: "https://images.unsplash.com/photo-1599305090598-fe179d501227?w=100&auto=format&fit=crop&q=60"
-  }
-];
+export default async function Home() {
+  const supabaseAdmin = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
 
-export default function Home() {
+  const { data: results } = await supabaseAdmin
+    .from('businesses')
+    .select('*, services(*), addresses(*)')
+    .eq('is_active', true)
+    .limit(3);
+
+  const trendingBusinesses = results || [];
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
@@ -166,83 +135,114 @@ export default function Home() {
                 <h2 className="font-heading text-3xl font-bold text-foreground">Trending Businesses</h2>
                 <p className="text-secondary-foreground">Highly rated professionals in your area</p>
               </div>
-              <Link href="/services" className={cn(buttonVariants({ variant: "outline" }), "rounded-full")}>
+              <Link href="/search" className={cn(buttonVariants({ variant: "outline" }), "rounded-full")}>
                 View All Services
               </Link>
             </div>
 
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {TRENDING_BUSINESSES.map((business) => (
-                <div
-                  key={business.id}
-                  className="overflow-hidden transition-all hover:shadow-lg animate-in fade-in zoom-in-95 duration-500"
-                >
-                  <Card className="overflow-hidden transition-all hover:shadow-lg">
-                    <div className="relative h-48 w-full">
-                      <Image
-                        src={business.image}
-                        alt={business.name}
-                        fill
-                        className="object-cover"
-                      />
-                      <Button
-                        size="icon"
-                        variant="secondary"
-                        className="absolute right-4 top-4 h-8 w-8 rounded-full bg-white/90 hover:bg-white"
-                      >
-                        <Heart className="h-4 w-4 text-secondary-foreground" />
-                      </Button>
-                      <div className="absolute -bottom-6 left-6">
-                        <div className="relative h-16 w-16 overflow-hidden rounded-xl border-4 border-white bg-white shadow-sm">
-                          <Image
-                            src={business.logo}
-                            alt={`${business.name} logo`}
-                            fill
-                            className="object-cover"
-                          />
+              {trendingBusinesses.map((business: {
+                id: string;
+                name: string;
+                description: string;
+                status: string;
+                banner_url: string;
+                logo_url: string;
+                addresses: { city: string; state: string }[];
+                services: { price: number }[];
+              }) => {
+                const address = business.addresses?.[0];
+                const locationStr = address ? `${address.city}, ${address.state}` : "Unknown Location";
+                
+                // Calculate lowest price if services exist
+                let lowestPrice = 0;
+                if (business.services && business.services.length > 0) {
+                  lowestPrice = Math.min(...business.services.map((s: { price: number }) => s.price || 0));
+                }
+                const formattedPrice = lowestPrice > 0 
+                  ? new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(lowestPrice)
+                  : "Price varies";
+
+                const displayImage = business.banner_url || business.logo_url || "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=800&auto=format&fit=crop&q=60";
+                const displayLogo = business.logo_url || "https://images.unsplash.com/photo-1514416432279-50fac261c7dd?w=100&auto=format&fit=crop&q=60";
+
+                return (
+                  <div
+                    key={business.id}
+                    className="overflow-hidden transition-all hover:shadow-lg animate-in fade-in zoom-in-95 duration-500"
+                  >
+                    <Card className="overflow-hidden transition-all hover:shadow-lg">
+                      <div className="relative h-48 w-full bg-muted">
+                        <Image
+                          src={displayImage}
+                          alt={business.name}
+                          fill
+                          className="object-cover"
+                        />
+                        <Button
+                          size="icon"
+                          variant="secondary"
+                          className="absolute right-4 top-4 h-8 w-8 rounded-full bg-white/90 hover:bg-white"
+                        >
+                          <Heart className="h-4 w-4 text-secondary-foreground" />
+                        </Button>
+                        <div className="absolute -bottom-6 left-6">
+                          <div className="relative h-16 w-16 overflow-hidden rounded-xl border-4 border-white bg-white shadow-sm">
+                            <Image
+                              src={displayLogo}
+                              alt={`${business.name} logo`}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <CardHeader className="pt-10">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <h3 className="font-heading text-lg font-bold text-foreground">{business.name}</h3>
-                          {business.verified && (
-                            <BadgeCheck className="h-5 w-5 text-primary" />
-                          )}
+                      <CardHeader className="pt-10">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <h3 className="font-heading text-lg font-bold text-foreground line-clamp-1">{business.name}</h3>
+                            {business.status === 'verified' && (
+                              <BadgeCheck className="h-5 w-5 text-primary shrink-0" />
+                            )}
+                          </div>
+                          <div className="flex items-center space-x-1 shrink-0">
+                            <Star className="h-4 w-4 fill-warning text-warning" />
+                            <span className="text-sm font-medium">--</span>
+                            <span className="text-xs text-secondary-foreground">(0)</span>
+                          </div>
                         </div>
-                        <div className="flex items-center space-x-1">
-                          <Star className="h-4 w-4 fill-warning text-warning" />
-                          <span className="text-sm font-medium">{business.rating}</span>
-                          <span className="text-xs text-secondary-foreground">({business.reviews})</span>
+                        <p className="text-sm text-secondary-foreground line-clamp-1">{business.description || "Local service"}</p>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center space-x-2 text-secondary-foreground truncate mr-2">
+                            <MapPin className="h-4 w-4 shrink-0" />
+                            <span className="truncate">{locationStr}</span>
+                          </div>
+                          <Badge variant="outline" className="border-success text-success whitespace-nowrap">
+                            Open Now
+                          </Badge>
                         </div>
-                      </div>
-                      <p className="text-sm text-secondary-foreground">{business.category}</p>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center space-x-2 text-secondary-foreground">
-                          <MapPin className="h-4 w-4" />
-                          <span>{business.location}</span>
+                      </CardContent>
+                      <CardFooter className="flex items-center justify-between border-t bg-muted/50 p-6">
+                        <div>
+                          <p className="text-xs text-secondary-foreground">Starting from</p>
+                          <p className="font-bold text-foreground">{formattedPrice}</p>
                         </div>
-                        <Badge variant="outline" className={business.isOpen ? "border-success text-success" : "border-danger text-danger"}>
-                          {business.isOpen ? "Open Now" : "Closed"}
-                        </Badge>
-                      </div>
-                    </CardContent>
-                    <CardFooter className="flex items-center justify-between border-t bg-muted/50 p-6">
-                      <div>
-                        <p className="text-xs text-secondary-foreground">Starting from</p>
-                        <p className="font-bold text-foreground">{business.price}</p>
-                      </div>
-                      <Link href={`/business/${business.id}`} className={cn(buttonVariants(), "rounded-full bg-primary hover:bg-primary-hover")}>
-                        View Details
-                      </Link>
-                    </CardFooter>
-                  </Card>
-                </div>
-              ))}
+                        <Link href={`/business/${business.id}`} className={cn(buttonVariants(), "rounded-full bg-primary hover:bg-primary-hover shrink-0")}>
+                          View Details
+                        </Link>
+                      </CardFooter>
+                    </Card>
+                  </div>
+                );
+              })}
             </div>
+            {trendingBusinesses.length === 0 && (
+               <div className="text-center py-12">
+                 <p className="text-muted-foreground">No trending businesses found.</p>
+               </div>
+            )}
           </div>
         </section>
 
@@ -282,8 +282,8 @@ export default function Home() {
               <div className="space-y-8">
                 {[
                   { title: "Register", desc: "Create your business account.", step: "1" },
-                  { title: "Verify", desc: "Submit documents for verification.", step: "2" },
-                  { title: "Grow", desc: "Publish your profile and get customers.", step: "3" },
+                  { title: "Setup", desc: "Add your services, prices, and locations.", step: "2" },
+                  { title: "Grow", desc: "Publish your profile and get booked.", step: "3" },
                 ].map((item) => (
                   <div key={item.step} className="flex gap-4">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand font-bold text-primary">
