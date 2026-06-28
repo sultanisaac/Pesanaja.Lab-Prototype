@@ -3,12 +3,12 @@ import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
 import { Card, CardContent } from '@/components/ui/card'
 import {
-  Briefcase, Mail, Phone, User, BadgeCheck, Clock, Star, MapPin,
-  ShieldAlert,
+  Mail, Phone, User, BadgeCheck, Clock, Star, ShieldAlert,
 } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
 
 interface PageProps {
@@ -53,7 +53,7 @@ export default async function BusinessDetailPage({ params }: PageProps) {
       {/* Banner */}
       <div className="h-48 sm:h-64 bg-gradient-to-r from-primary/20 to-primary/10 relative overflow-hidden">
         {business.banner_url ? (
-          <img src={business.banner_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <Image src={business.banner_url} alt={`${business.name} banner`} fill className="object-cover" />
         ) : (
           <div className="absolute inset-0 opacity-10">
             <div className="h-full w-full" style={{
@@ -72,9 +72,9 @@ export default async function BusinessDetailPage({ params }: PageProps) {
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
                   {/* Logo */}
-                  <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 text-primary font-bold text-2xl shadow-sm">
+                  <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0 text-primary font-bold text-2xl shadow-sm overflow-hidden">
                     {business.logo_url
-                      ? <img src={business.logo_url} alt={business.name} className="h-full w-full object-cover rounded-2xl" />
+                      ? <Image src={business.logo_url} alt={business.name} width={64} height={64} className="object-cover" />
                       : business.name.charAt(0).toUpperCase()
                     }
                   </div>
