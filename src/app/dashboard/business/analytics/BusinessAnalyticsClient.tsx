@@ -96,13 +96,13 @@ export default function BusinessAnalyticsClient({ data, businessName }: Business
             {businessName ? `Booking and revenue data for ${businessName}` : 'Booking and revenue data'}
           </p>
         </div>
-        <div className="flex items-center gap-1 bg-muted p-1 rounded-lg">
+        <div className="flex flex-wrap items-center gap-1 bg-muted p-1 rounded-lg">
           {periods.map((p) => (
             <button
               key={p.value}
               onClick={() => setPeriod(p.value)}
               className={cn(
-                'px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
+                'px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex-1 sm:flex-none text-center',
                 period === p.value
                   ? 'bg-white text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
@@ -185,17 +185,19 @@ export default function BusinessAnalyticsClient({ data, businessName }: Business
             {current.recentBookings.length > 0 ? (
               <div className="space-y-3">
                 {current.recentBookings.map((b, i) => (
-                  <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-muted/40 hover:bg-muted/70 transition-colors">
-                    <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary text-sm shrink-0">
-                      {b.customer_name?.charAt(0) ?? '?'}
+                  <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-lg bg-muted/40 hover:bg-muted/70 transition-colors">
+                    <div className="flex items-center gap-3 w-full sm:w-auto flex-1 min-w-0">
+                      <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center font-semibold text-primary text-sm shrink-0">
+                        {b.customer_name?.charAt(0) ?? '?'}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm text-foreground truncate">{b.customer_name ?? 'Unknown'}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {b.service_name ?? 'Service'} · {new Date(b.scheduled_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm text-foreground truncate">{b.customer_name ?? 'Unknown'}</p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {b.service_name ?? 'Service'} · {new Date(b.scheduled_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
-                      </p>
-                    </div>
-                    <div className="text-right shrink-0">
+                    <div className="flex justify-between sm:block text-left sm:text-right shrink-0 w-full sm:w-auto items-center mt-2 sm:mt-0 pt-2 sm:pt-0 border-t sm:border-0 border-border/50">
                       <p className="text-sm font-medium text-foreground">Rp {Number(b.total_price).toLocaleString('id-ID')}</p>
                       <span className={cn('text-[10px] font-medium px-1.5 py-0.5 rounded-full capitalize', statusColors[b.status] ?? 'bg-muted text-muted-foreground')}>
                         {b.status}

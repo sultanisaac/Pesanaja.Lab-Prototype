@@ -166,48 +166,56 @@ export function BusinessStorefront({ business, services, reviews, addresses, isF
             <ArrowLeft className="h-5 w-5" />
           </button>
         </div>
+      </div>
         
-        {/* Business Logo & Info Overlay */}
-        <div className="absolute -bottom-16 left-0 right-0 px-4 md:px-8 max-w-5xl mx-auto flex items-end gap-6">
-          <div className="relative h-32 w-32 rounded-xl border-4 border-background bg-background overflow-hidden shadow-lg shrink-0">
+      {/* Profile Info Section (Normal Flow) */}
+      <div className="max-w-5xl mx-auto px-4 md:px-8">
+        <div className="relative flex flex-col md:flex-row md:items-end gap-4 md:gap-6 -mt-10 md:-mt-12 mb-10 z-10">
+          
+          {/* Logo */}
+          <div className="relative h-32 w-32 md:h-40 md:w-40 rounded-xl border-4 border-background bg-background overflow-hidden shadow-lg shrink-0">
             {business.logo_url ? (
               <Image src={business.logo_url} alt="Logo" fill className="object-cover" />
             ) : (
-              <div className="h-full w-full bg-primary/10 flex items-center justify-center text-primary font-heading font-bold text-4xl">
+              <div className="h-full w-full bg-primary/10 flex items-center justify-center text-primary font-heading font-bold text-5xl">
                 {business.name.charAt(0)}
               </div>
             )}
           </div>
-          <div className="flex-1 pb-2 flex justify-between items-end">
+          
+          {/* Business Name & Info */}
+          <div className="flex-1 flex flex-col sm:flex-row sm:items-end justify-between gap-4 md:pb-2 pt-2 md:pt-0">
             <div>
-              <h1 className="text-3xl font-heading font-bold text-foreground drop-shadow-sm">{business.name}</h1>
-              <div className="flex items-center gap-4 mt-1 text-sm font-medium text-foreground/80">
-                <span className="flex items-center gap-1 bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded-md text-primary">
+              <h1 className="text-3xl md:text-4xl font-heading font-bold text-foreground">{business.name}</h1>
+              <div className="flex flex-wrap items-center gap-3 mt-2 text-sm font-medium text-foreground/80">
+                <span className="flex items-center gap-1.5 bg-background shadow-sm border border-border/50 px-3 py-1 rounded-full text-primary">
                   <Star className="h-4 w-4 fill-primary" /> {averageRating} ({reviews.length})
                 </span>
                 {addresses.length > 0 && (
-                  <span className="flex items-center gap-1 bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded-md">
+                  <span className="flex items-center gap-1.5 bg-background shadow-sm border border-border/50 px-3 py-1 rounded-full text-muted-foreground">
                     <MapPin className="h-4 w-4" /> {addresses[0].city}, {addresses[0].state}
                     {addresses.length > 1 && ` (+${addresses.length - 1} more)`}
                   </span>
                 )}
               </div>
             </div>
+            
+            {/* Favorite Button */}
             <button 
               onClick={handleToggleFavorite}
               disabled={favLoading}
               className={cn(
-                "h-12 w-12 rounded-full shadow-md flex items-center justify-center transition-all",
-                isFavorite ? "bg-rose-100 text-rose-500" : "bg-background text-muted-foreground hover:text-rose-500"
+                "h-12 w-12 rounded-full shadow-sm border border-border/50 flex items-center justify-center transition-all shrink-0",
+                isFavorite ? "bg-rose-50 border-rose-200 text-rose-500" : "bg-background text-muted-foreground hover:text-rose-500 hover:border-rose-200 hover:bg-rose-50"
               )}
             >
-              <Heart className={cn("h-6 w-6", isFavorite && "fill-rose-500")} />
+              <Heart className={cn("h-6 w-6 transition-all", isFavorite && "fill-rose-500 scale-110")} />
             </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 md:px-8 mt-24 grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-5xl mx-auto px-4 md:px-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Main Content (Left column on large screens) */}
         <div className="lg:col-span-2 space-y-8">
@@ -397,7 +405,18 @@ export function BusinessStorefront({ business, services, reviews, addresses, isF
                   <form onSubmit={handleBooking} className="space-y-6">
                     {/* Date Selection */}
                     <div className="space-y-2">
-                      <label className="text-sm font-bold text-foreground">1. Select Date</label>
+                      <div className="flex justify-between items-end">
+                        <label className="text-sm font-bold text-foreground">1. Select Date</label>
+                        {business.operating_hours && (
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Info className="h-3 w-3" />
+                            {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+                              .filter(d => business.operating_hours[d]?.isOpen)
+                              .map(d => d.charAt(0).toUpperCase() + d.slice(1, 3))
+                              .join(', ') || 'None'}
+                          </span>
+                        )}
+                      </div>
                       <input 
                         type="date" 
                         name="date"
@@ -420,8 +439,9 @@ export function BusinessStorefront({ business, services, reviews, addresses, isF
                           Please select a date first to see available times.
                         </div>
                       ) : timeSlots.length === 0 ? (
-                        <div className="p-4 text-center bg-warning/10 rounded-xl border border-warning/20 text-sm text-warning-foreground">
-                          No available time slots on this date.
+                        <div className="p-4 text-center bg-rose-50 rounded-xl border border-rose-200 text-sm text-rose-600 flex flex-col items-center justify-center gap-2">
+                          <Info className="h-5 w-5" />
+                          <span>No available time slots on this date.</span>
                         </div>
                       ) : (
                         <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">

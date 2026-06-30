@@ -138,12 +138,12 @@ export function AppointmentsClient({
                 </div>
 
                 {/* Middle: Details */}
-                <CardContent className="p-4 flex-1 flex flex-col justify-center">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h3 className="font-bold text-foreground">{booking.service?.name || 'Unknown Service'}</h3>
-                      <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
+                <CardContent className="p-4 flex-1 flex flex-col justify-center min-w-0">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-foreground truncate">{booking.service?.name || 'Unknown Service'}</h3>
+                      <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1 min-w-0 truncate">
                           <User className="h-3.5 w-3.5" /> {customerName}
                         </span>
                         {booking.customer?.phone_number && (
@@ -153,12 +153,12 @@ export function AppointmentsClient({
                         )}
                       </div>
                       {booking.notes && (
-                        <p className="text-xs text-muted-foreground mt-2 italic border-l-2 border-primary/20 pl-2">
+                        <p className="text-xs text-muted-foreground mt-2 italic border-l-2 border-primary/20 pl-2 line-clamp-2">
                           &quot;{booking.notes}&quot;
                         </p>
                       )}
                     </div>
-                    <div className="text-right shrink-0">
+                    <div className="text-left sm:text-right shrink-0">
                       <p className="font-bold text-foreground">Rp {Number(booking.total_price).toLocaleString('id-ID')}</p>
                       <p className="text-xs text-muted-foreground">{booking.service?.duration_minutes} mins</p>
                     </div>
@@ -166,22 +166,22 @@ export function AppointmentsClient({
                 </CardContent>
 
                 {/* Right Side: Actions */}
-                <div className="p-4 bg-muted/10 border-t sm:border-t-0 sm:border-l border-border flex sm:flex-col items-center justify-center gap-2 sm:w-40 shrink-0">
+                <div className="p-4 bg-muted/10 border-t sm:border-t-0 sm:border-l border-border flex flex-row sm:flex-col flex-wrap sm:flex-nowrap items-center justify-center gap-2 sm:w-40 shrink-0">
                   {loadingId === booking.id ? (
-                    <Loader2 className="h-5 w-5 text-primary animate-spin" />
+                    <Loader2 className="h-5 w-5 text-primary animate-spin mx-auto" />
                   ) : (
                     <>
                       {booking.status === 'pending' && (
                         <>
                           <button 
                             onClick={() => handleStatusUpdate(booking.id, 'confirmed')}
-                            className="w-full px-3 py-1.5 bg-primary text-white text-xs font-semibold rounded-md hover:bg-primary/90 transition-colors"
+                            className="flex-1 sm:w-full px-3 py-1.5 bg-primary text-white text-xs font-semibold rounded-md hover:bg-primary/90 transition-colors"
                           >
                             Confirm
                           </button>
                           <button 
                             onClick={() => handleStatusUpdate(booking.id, 'cancelled')}
-                            className="w-full px-3 py-1.5 bg-destructive/10 text-destructive text-xs font-semibold rounded-md hover:bg-destructive/20 transition-colors"
+                            className="flex-1 sm:w-full px-3 py-1.5 bg-destructive/10 text-destructive text-xs font-semibold rounded-md hover:bg-destructive/20 transition-colors"
                           >
                             Decline
                           </button>
@@ -192,13 +192,13 @@ export function AppointmentsClient({
                         <>
                           <button 
                             onClick={() => handleStatusUpdate(booking.id, 'completed')}
-                            className="w-full px-3 py-1.5 bg-success text-white text-xs font-semibold rounded-md hover:bg-success/90 transition-colors"
+                            className="flex-1 sm:w-full px-3 py-1.5 bg-success text-white text-xs font-semibold rounded-md hover:bg-success/90 transition-colors"
                           >
                             Mark Completed
                           </button>
                           <button 
                             onClick={() => handleStatusUpdate(booking.id, 'cancelled')}
-                            className="w-full px-3 py-1.5 bg-transparent border border-border text-muted-foreground hover:text-foreground text-xs font-semibold rounded-md hover:bg-muted transition-colors"
+                            className="flex-1 sm:w-full px-3 py-1.5 bg-transparent border border-border text-muted-foreground hover:text-foreground text-xs font-semibold rounded-md hover:bg-muted transition-colors"
                           >
                             Cancel
                           </button>
