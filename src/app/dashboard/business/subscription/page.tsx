@@ -183,8 +183,8 @@ export default async function SubscriptionPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="overflow-x-auto pb-2">
+            <table className="w-full min-w-[500px] text-sm">
               <thead>
                 <tr className="border-b border-border">
                   <th className="text-left py-3 pr-4 text-muted-foreground font-medium w-1/2">Feature</th>

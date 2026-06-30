@@ -100,16 +100,16 @@ export function ServicesManager({ businessId, services }: { businessId: string; 
             </div>
           ) : (
             services.map((service) => (
-              <div key={service.id} className="flex justify-between items-center p-3 border rounded-lg hover:border-primary/50 transition-colors bg-white">
-                <div>
-                  <h4 className="font-semibold text-sm text-foreground">{service.name}</h4>
-                  {service.description && <p className="text-xs text-muted-foreground mt-0.5">{service.description}</p>}
-                  <div className="flex gap-3 mt-2 text-xs font-medium text-secondary-foreground">
-                    <span className="flex items-center gap-1"><Tag className="h-3 w-3" /> Rp {service.price.toLocaleString('id-ID')}</span>
-                    <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {service.duration_minutes} mins</span>
+              <div key={service.id} className="flex justify-between items-start sm:items-center gap-4 p-3 border rounded-lg hover:border-primary/50 transition-colors bg-white">
+                <div className="flex-1 min-w-0 pr-2">
+                  <h4 className="font-semibold text-sm text-foreground truncate">{service.name}</h4>
+                  {service.description && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{service.description}</p>}
+                  <div className="flex flex-wrap gap-3 mt-2 text-xs font-medium text-secondary-foreground">
+                    <span className="flex items-center gap-1 shrink-0"><Tag className="h-3 w-3" /> Rp {service.price.toLocaleString('id-ID')}</span>
+                    <span className="flex items-center gap-1 shrink-0"><Clock className="h-3 w-3" /> {service.duration_minutes} mins</span>
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => handleDelete(service.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0" disabled={loading}>
+                <Button variant="ghost" size="icon" onClick={() => handleDelete(service.id)} className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0 mt-1 sm:mt-0" disabled={loading}>
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>

@@ -198,8 +198,10 @@ export function Sidebar({ role, displayName, email, avatarUrl }: SidebarProps) {
         <nav className="flex-1 overflow-y-auto py-3 space-y-0.5" style={{ padding: showLabels ? '12px 8px' : '12px 4px' }}>
           {navItems.map((item) => {
             const Icon = item.icon
-            // Active if exact match OR starts with href (for nested routes, but NOT root)
-            const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href + '/'))
+            // Active if exact match. For non-Overview items, also active if starting with href/ (nested routes)
+            const isActive = item.label === 'Overview'
+              ? pathname === item.href
+              : (pathname === item.href || pathname.startsWith(item.href + '/'))
             return (
               <Link
                 key={item.href}
