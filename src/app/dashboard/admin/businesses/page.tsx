@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase/server'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Briefcase, CheckCircle, XCircle, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import BusinessesClient from './BusinessesClient'
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   pending: { label: 'Pending', color: 'bg-warning/10 text-warning', icon: Clock },
@@ -68,88 +69,17 @@ export default async function AdminBusinessesPage() {
         })}
       </div>
 
-      {/* Businesses table */}
-      <Card className="shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-base font-semibold">All Businesses</CardTitle>
-          <CardDescription>{businesses?.length ?? 0} businesses registered on the platform</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {error ? (
-            <div className="py-8 text-center text-sm text-destructive">
-              Failed to load businesses. Please try again.
-            </div>
-          ) : !businesses || businesses.length === 0 ? (
-            <div className="py-8 text-center text-sm text-muted-foreground">
-              No businesses registered yet.
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Business</th>
-                    <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Owner</th>
-                    <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
-                    <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Active</th>
-                    <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Registered</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {businesses.map((biz) => {
-                    const cfg = statusConfig[biz.status] ?? statusConfig.pending
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    const owner = biz.profiles as any
-                    const ownerName = owner?.first_name
-                      ? `${owner.first_name} ${owner.last_name ?? ''}`.trim()
-                      : owner?.email?.split('@')[0] ?? '—'
-                    return (
-                      <tr key={biz.id} className="hover:bg-muted/40 transition-colors">
-                        <td className="py-3 px-2">
-                          <div className="flex items-center gap-2">
-                            <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                              <Briefcase className="h-3.5 w-3.5 text-muted-foreground" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-foreground">{biz.name}</p>
-                              {biz.contact_email && (
-                                <p className="text-xs text-muted-foreground">{biz.contact_email}</p>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-3 px-2 text-muted-foreground">{ownerName}</td>
-                        <td className="py-3 px-2">
-                          <span className={cn('text-[10px] font-semibold px-2 py-1 rounded-full capitalize', cfg.color)}>
-                            {cfg.label}
-                          </span>
-                        </td>
-                        <td className="py-3 px-2">
-                          <span className={cn(
-                            'text-[10px] font-semibold px-2 py-1 rounded-full',
-                            biz.is_active
-                              ? 'bg-success/10 text-success'
-                              : 'bg-muted text-muted-foreground'
-                          )}>
-                            {biz.is_active ? 'Active' : 'Inactive'}
-                          </span>
-                        </td>
-                        <td className="py-3 px-2 text-muted-foreground">
-                          {new Date(biz.created_at).toLocaleDateString('id-ID', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Businesses table - Client Component */}
+      {error ? (
+        <Card className="shadow-sm">
+          <CardContent className="py-8 text-center text-sm text-destructive">
+            Failed to load businesses. Please try again.
+          </CardContent>
+        </Card>
+      ) : (
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        <BusinessesClient businesses={(businesses as any) || []} />
+      )}
     </div>
   )
 }
