@@ -411,7 +411,7 @@ export function BusinessStorefront({ business, services, reviews, addresses, isF
                           <span className="text-xs text-muted-foreground flex items-center gap-1">
                             <Info className="h-3 w-3" />
                             {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
-                              .filter(d => business.operating_hours[d]?.isOpen)
+                              .filter(d => business.operating_hours?.[d as keyof typeof business.operating_hours]?.isOpen)
                               .map(d => d.charAt(0).toUpperCase() + d.slice(1, 3))
                               .join(', ') || 'None'}
                           </span>
