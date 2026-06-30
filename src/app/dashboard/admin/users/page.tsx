@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Users, Shield, Briefcase, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import UserActionMenu from './UserActionMenu'
 
 const roleConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
   customer: { label: 'Customer', color: 'bg-primary/10 text-primary', icon: User },
@@ -11,6 +12,9 @@ const roleConfig: Record<string, { label: string; color: string; icon: React.Ele
 
 export default async function AdminUsersPage() {
   const supabase = await createClient()
+
+  // Get current user to check who is viewing the list
+  const { data: { user: currentUser } } = await supabase.auth.getUser()
 
   const { data: users, error } = await supabase
     .from('profiles')
@@ -82,6 +86,7 @@ export default async function AdminUsersPage() {
                     <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Role</th>
                     <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Phone</th>
                     <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Joined</th>
+                    <th className="text-right py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -115,6 +120,13 @@ export default async function AdminUsersPage() {
                             month: 'short',
                             year: 'numeric',
                           })}
+                        </td>
+                        <td className="py-3 px-2 text-right">
+                          <UserActionMenu 
+                            userId={user.id} 
+                            currentRole={user.role ?? 'customer'} 
+                            isCurrentUser={currentUser?.id === user.id} 
+                          />
                         </td>
                       </tr>
                     )

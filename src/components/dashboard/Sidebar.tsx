@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { SignOutButton } from './SignOutButton'
+import { NotificationBell } from './NotificationBell'
 import {
   LayoutDashboard,
   Calendar,
@@ -74,9 +75,10 @@ interface SidebarProps {
   displayName: string
   email: string
   avatarUrl?: string | null
+  userId: string
 }
 
-export function Sidebar({ role, displayName, email, avatarUrl }: SidebarProps) {
+export function Sidebar({ role, displayName, email, avatarUrl, userId }: SidebarProps) {
   const pathname = usePathname()
   // Default: NOT collapsed — safer default, avoids flash of wrong layout
   const [collapsed, setCollapsed] = useState(false)
@@ -138,12 +140,15 @@ export function Sidebar({ role, displayName, email, avatarUrl }: SidebarProps) {
             </Link>
           )}
           {!isMobile ? (
-            <button
-              onClick={toggleCollapse}
-              className="h-7 w-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-colors shrink-0"
-            >
-              {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-            </button>
+            <div className="flex items-center gap-1">
+              {!isCollapsed && <NotificationBell userId={userId} />}
+              <button
+                onClick={toggleCollapse}
+                className="h-7 w-7 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-colors shrink-0"
+              >
+                {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+              </button>
+            </div>
           ) : (
             <button
               onClick={() => setMobileOpen(false)}
@@ -257,17 +262,20 @@ export function Sidebar({ role, displayName, email, avatarUrl }: SidebarProps) {
       </aside>
 
       {/* Mobile top bar */}
-      <div className="md:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-white border-b border-border flex items-center px-4 gap-3">
-        <button
-          onClick={() => setMobileOpen(true)}
-          className="h-8 w-8 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted"
-        >
-          <Menu className="h-5 w-5" />
-        </button>
-        <Link href="/" className="flex items-center gap-2">
-          <span className="h-6 w-6 rounded-md bg-primary flex items-center justify-center text-white font-bold text-xs">P</span>
-          <span className="font-heading font-bold text-foreground text-sm">Pesanaja.Lab</span>
-        </Link>
+      <div className="md:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-white border-b border-border flex items-center justify-between px-4">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="h-8 w-8 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+          <Link href="/" className="flex items-center gap-2">
+            <span className="h-6 w-6 rounded-md bg-primary flex items-center justify-center text-white font-bold text-xs">P</span>
+            <span className="font-heading font-bold text-foreground text-sm">Pesanaja.Lab</span>
+          </Link>
+        </div>
+        <NotificationBell userId={userId} />
       </div>
 
       {/* Mobile overlay */}
