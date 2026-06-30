@@ -25,7 +25,7 @@ export async function createBooking(formData: FormData) {
   // Get service price
   const { data: service } = await supabase
     .from('services')
-    .select('price')
+    .select('price, name')
     .eq('id', serviceId)
     .single()
 
@@ -69,6 +69,22 @@ export async function createBooking(formData: FormData) {
 
   if (error) {
     return { error: error.message }
+  }
+
+  // Fetch business owner to send notification
+  const { data: business } = await supabase
+    .from('businesses')
+    .select('owner_id, name')
+    .eq('id', businessId)
+    .single()
+
+  if (business?.owner_id) {
+    await supabase.from('notifications').insert({
+      user_id: business.owner_id,
+      title: 'New Appointment Request',
+      message: `A customer has requested a new appointment for ${service.name || 'a service'} at your business.`,
+      link: '/dashboard/business/appointments',
+    })
   }
 
   revalidatePath('/dashboard/customer/bookings')

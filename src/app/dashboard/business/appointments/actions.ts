@@ -18,6 +18,13 @@ export async function updateBookingStatus(bookingId: string, status: 'pending' |
 
   if (!business) return { error: 'Business not found' }
 
+  // Get booking details first to know who to notify
+  const { data: bookingDetails } = await supabase
+    .from('bookings')
+    .select('customer_id, services(name)')
+    .eq('id', bookingId)
+    .single()
+
   // Update status
   const { error } = await supabase
     .from('bookings')
@@ -26,6 +33,18 @@ export async function updateBookingStatus(bookingId: string, status: 'pending' |
     .eq('business_id', business.id)
 
   if (error) return { error: error.message }
+
+  // Notify customer
+  if (bookingDetails?.customer_id && (status === 'confirmed' || status === 'cancelled')) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const serviceName = (bookingDetails.services as any)?.name || 'a service'
+    await supabase.from('notifications').insert({
+      user_id: bookingDetails.customer_id,
+      title: `Appointment ${status === 'confirmed' ? 'Confirmed' : 'Cancelled'}`,
+      message: `Your appointment for ${serviceName} has been ${status}.`,
+      link: '/dashboard/customer/bookings',
+    })
+  }
 
   revalidatePath('/dashboard/business/appointments')
   return { success: true }

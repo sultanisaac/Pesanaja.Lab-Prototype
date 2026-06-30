@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Shield, ShieldAlert, MoreHorizontal } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { toggleAdminRole } from './actions'
 import {
   DropdownMenu,
@@ -12,6 +13,7 @@ import {
 
 export default function UserActionMenu({ userId, currentRole, isCurrentUser }: { userId: string, currentRole: string, isCurrentUser: boolean }) {
   const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
 
   const handleToggleAdmin = async () => {
     setIsLoading(true)
@@ -21,6 +23,7 @@ export default function UserActionMenu({ userId, currentRole, isCurrentUser }: {
         alert(`Error: ${result.error}`)
       } else {
         alert(`Success: User role has been updated to ${result.newRole}.`)
+        router.refresh()
       }
     } catch {
       alert('An unexpected error occurred.')

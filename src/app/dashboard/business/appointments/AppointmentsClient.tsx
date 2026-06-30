@@ -3,8 +3,10 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Calendar as CalendarIcon, Clock, XCircle, User, Phone, Plus, Loader2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { updateBookingStatus, createManualBooking } from './actions'
+import { AppointmentDetailsModal } from './AppointmentDetailsModal'
 
 type Booking = {
   id: string
@@ -35,6 +37,8 @@ export function AppointmentsClient({
   const [showModal, setShowModal] = useState(false)
   const [modalLoading, setModalLoading] = useState(false)
   const [modalError, setModalError] = useState<string | null>(null)
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
+  const router = useRouter()
 
   const filteredBookings = initialBookings.filter(b => filter === 'all' || b.status === filter)
 
@@ -42,6 +46,7 @@ export function AppointmentsClient({
     setLoadingId(id)
     await updateBookingStatus(id, status)
     setLoadingId(null)
+    router.refresh()
   }
 
   const handleManualBooking = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -58,6 +63,7 @@ export function AppointmentsClient({
     } else {
       setShowModal(false)
       setModalLoading(false)
+      router.refresh()
       // Form resets automatically when unmounted
     }
   }
@@ -114,7 +120,7 @@ export function AppointmentsClient({
               : booking.customer?.email.split('@')[0] || 'Unknown Customer'
 
             return (
-              <Card key={booking.id} className="shadow-sm overflow-hidden flex flex-col sm:flex-row">
+              <Card key={booking.id} className="shadow-sm overflow-hidden flex flex-col sm:flex-row group">
                 {/* Left Side: Time & Date */}
                 <div className="bg-muted/30 p-4 sm:w-48 shrink-0 flex flex-col justify-center border-b sm:border-b-0 sm:border-r border-border">
                   <div className="flex items-center gap-2 text-foreground font-bold">
@@ -138,10 +144,15 @@ export function AppointmentsClient({
                 </div>
 
                 {/* Middle: Details */}
-                <CardContent className="p-4 flex-1 flex flex-col justify-center min-w-0">
+                <CardContent 
+                  className="p-4 flex-1 flex flex-col justify-center min-w-0 cursor-pointer hover:bg-muted/10 transition-colors"
+                  onClick={() => setSelectedBooking(booking)}
+                >
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-bold text-foreground truncate">{booking.service?.name || 'Unknown Service'}</h3>
+                      <h3 className="font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                        {booking.service?.name || 'Unknown Service'}
+                      </h3>
                       <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1 min-w-0 truncate">
                           <User className="h-3.5 w-3.5" /> {customerName}
@@ -315,6 +326,20 @@ export function AppointmentsClient({
           </Card>
         </div>
       )}
+
+      {/* Appointment Details Modal */}
+      <AppointmentDetailsModal
+        booking={selectedBooking}
+        isOpen={!!selectedBooking}
+        onClose={() => setSelectedBooking(null)}
+        onUpdateStatus={(id, status) => {
+          handleStatusUpdate(id, status);
+          if (selectedBooking) {
+             setSelectedBooking({ ...selectedBooking, status })
+          }
+        }}
+        loadingId={loadingId}
+      />
     </div>
   )
 }

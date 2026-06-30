@@ -3,15 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
-// Helper for bypassing RLS securely on server-side actions
-function getAdminClient() {
-  return createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-}
+// Using regular client since RLS is configured appropriately
 
 export async function updateBusinessProfile(formData: FormData): Promise<void> {
   const supabase = await createClient()
@@ -86,8 +79,7 @@ export async function addService(businessId: string, formData: FormData) {
   const price = Number(formData.get('price'))
   const duration_minutes = Number(formData.get('duration_minutes'))
 
-  const adminAuth = getAdminClient()
-  const { error } = await adminAuth.from('services').insert({
+  const { error } = await supabase.from('services').insert({
     business_id: businessId,
     name, description, price, duration_minutes
   })
@@ -101,16 +93,15 @@ export async function deleteService(serviceId: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
 
-  const adminAuth = getAdminClient()
   // Fetch service to get business_id
-  const { data: service } = await adminAuth.from('services').select('business_id').eq('id', serviceId).single()
+  const { data: service } = await supabase.from('services').select('business_id').eq('id', serviceId).single()
   if (!service) return { error: 'Service not found' }
 
   // Verify ownership
   const { data: business } = await supabase.from('businesses').select('id').eq('id', service.business_id).eq('owner_id', user.id).single()
   if (!business) return { error: 'Unauthorized business access' }
 
-  const { error } = await adminAuth.from('services').delete().eq('id', serviceId)
+  const { error } = await supabase.from('services').delete().eq('id', serviceId)
   if (error) return { error: error.message }
   revalidatePath('/dashboard/business/settings')
   return { success: true }
@@ -130,8 +121,7 @@ export async function addLocation(businessId: string, formData: FormData) {
   const state = formData.get('state') as string
   const postal_code = formData.get('postal_code') as string
 
-  const adminAuth = getAdminClient()
-  const { error } = await adminAuth.from('addresses').insert({
+  const { error } = await supabase.from('addresses').insert({
     business_id: businessId,
     street_address, city, state, postal_code
   })
@@ -145,16 +135,15 @@ export async function deleteLocation(locationId: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
 
-  const adminAuth = getAdminClient()
   // Fetch address to get business_id
-  const { data: address } = await adminAuth.from('addresses').select('business_id').eq('id', locationId).single()
+  const { data: address } = await supabase.from('addresses').select('business_id').eq('id', locationId).single()
   if (!address) return { error: 'Location not found' }
 
   // Verify ownership
   const { data: business } = await supabase.from('businesses').select('id').eq('id', address.business_id).eq('owner_id', user.id).single()
   if (!business) return { error: 'Unauthorized business access' }
 
-  const { error } = await adminAuth.from('addresses').delete().eq('id', locationId)
+  const { error } = await supabase.from('addresses').delete().eq('id', locationId)
   if (error) return { error: error.message }
   revalidatePath('/dashboard/business/settings')
   return { success: true }

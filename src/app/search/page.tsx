@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Search, MapPin, Filter, Star, BadgeCheck, Heart, SlidersHorizontal } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/server';
 
 export default async function SearchPage(props: {
   searchParams: Promise<{ q?: string; location?: string; min_price?: string; max_price?: string; min_rating?: string }>;
@@ -19,13 +19,10 @@ export default async function SearchPage(props: {
   const maxPrice = searchParams.max_price ? parseInt(searchParams.max_price) : null;
   const minRating = searchParams.min_rating ? parseFloat(searchParams.min_rating) : null;
 
-  const supabaseAdmin = createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const supabase = await createClient();
 
   // Fetch all active businesses with their addresses, services, and reviews
-  let dbQuery = supabaseAdmin
+  let dbQuery = supabase
     .from('businesses')
     .select(`
       id, name, description, banner_url, logo_url,
