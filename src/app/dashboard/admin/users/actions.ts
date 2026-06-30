@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { revalidatePath } from 'next/cache'
 
 export async function toggleAdminRole(userId: string, currentRole: string) {
@@ -31,9 +32,7 @@ export async function toggleAdminRole(userId: string, currentRole: string) {
   // Calculate new role
   let newRole = currentRole
   if (currentRole === 'admin') {
-    // We don't necessarily know if they were a customer or business before, but we can default to customer
-    // A better approach is to check if they own a business, but for simplicity we can just demote to 'customer'
-    // To be safer, let's check if they have a business
+    // Check if they have a business
     const { count } = await supabase
       .from('businesses')
       .select('id', { count: 'exact', head: true })
@@ -44,7 +43,13 @@ export async function toggleAdminRole(userId: string, currentRole: string) {
     newRole = 'admin'
   }
 
-  const { error } = await supabase
+  // Use the service role key to bypass RLS for this specific update
+  const supabaseAdmin = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  const { error } = await supabaseAdmin
     .from('profiles')
     .update({ role: newRole })
     .eq('id', userId)
