@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Calendar as CalendarIcon, Clock, TrendingUp, AlertCircle } from 'lucide-react'
+import { Calendar as CalendarIcon, Clock, TrendingUp } from 'lucide-react'
 import { AppointmentsClient } from './AppointmentsClient'
 
 export default async function BusinessAppointmentsPage() {
