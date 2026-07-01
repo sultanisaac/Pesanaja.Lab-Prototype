@@ -63,8 +63,9 @@ export async function POST() {
     })
 
     return NextResponse.json({ url: session.url })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Payment error:', error)
-    return new NextResponse(error.message || 'Internal Error', { status: 500 })
+    const errorMessage = error instanceof Error ? error.message : 'Internal Error'
+    return new NextResponse(errorMessage, { status: 500 })
   }
 }
