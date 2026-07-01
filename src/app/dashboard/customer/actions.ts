@@ -41,7 +41,7 @@ export async function submitUpgradeRequest(formData: FormData): Promise<void> {
     redirect('/dashboard/customer?error=You+already+have+a+pending+request')
   }
 
-  const { error } = await supabase
+  const { data: newRequest, error } = await supabase
     .from('business_upgrade_requests')
     .insert({
       user_id: user.id,
@@ -50,26 +50,28 @@ export async function submitUpgradeRequest(formData: FormData): Promise<void> {
       contact_email,
       contact_phone,
     })
+    .select('id')
+    .single()
 
   if (error) {
     redirect(`/dashboard/customer?error=${encodeURIComponent(error.message)}`)
   }
 
-  // Notify all admins
-  const { data: admins } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('role', 'admin')
-
-  if (admins && admins.length > 0) {
-    const notifications = admins.map((admin) => ({
-      user_id: admin.id,
-      title: 'New Business Verification Request',
-      message: `${business_name} has requested to be verified as a business.`,
-      link: '/dashboard/admin/verifications',
-    }))
-    
-    await supabase.from('notifications').insert(notifications)
+  // Redirect to Xendit checkout
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pesanajalab-prototype.vercel.app'
+    const res = await fetch(`${baseUrl}/api/checkout`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ upgradeId: newRequest.id }),
+    })
+    const data = await res.json()
+    if (data.url) {
+      redirect(data.url)
+    }
+  } catch (e) {
+    console.error('Checkout error:', e)
+    redirect('/dashboard/customer?error=Payment+setup+failed')
   }
 
   revalidatePath('/dashboard/customer')

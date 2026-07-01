@@ -24,10 +24,11 @@ const CATEGORIES = [
 export default async function Home() {
   const supabase = await createClient()
 
-  const { data: results } = await supabase
+    const { data: results } = await supabase
     .from('businesses')
     .select('*, services(*), addresses(*)')
     .eq('is_active', true)
+    .eq('status', 'verified')
     .limit(3);
 
   const trendingBusinesses = results || [];

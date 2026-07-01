@@ -23,9 +23,37 @@ export default async function BusinessDashboard() {
   // Get this owner's business
   const { data: business } = await supabase
     .from('businesses')
-    .select('id, name, status, is_active')
+    .select('id, name, status, payment_status, is_active')
     .eq('owner_id', user?.id)
     .single()
+
+  // Lock logic
+  if (!business || business.payment_status !== 'paid') {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+        <AlertCircle className="h-12 w-12 text-warning" />
+        <h1 className="text-2xl font-bold">Start your business</h1>
+        <p className="text-muted-foreground max-w-md">
+          {business ? 'You need to complete your subscription payment to unlock your dashboard.' : 'Set up your business profile and subscribe to start receiving appointments.'}
+        </p>
+        <Link href="/dashboard/business/settings" className={cn(buttonVariants({ size: 'lg' }))}>
+          {business ? 'Complete Payment' : 'Go to Business Settings'}
+        </Link>
+      </div>
+    )
+  }
+
+  if (business.status !== 'verified') {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+        <Clock className="h-12 w-12 text-primary" />
+        <h1 className="text-2xl font-bold">Waiting confirm or approval</h1>
+        <p className="text-muted-foreground max-w-md">
+          Your payment was successful! Our admin team is currently reviewing your business details. Your dashboard will be unlocked shortly.
+        </p>
+      </div>
+    )
+  }
 
   // Fetch real data in parallel
   const businessId = business?.id ?? null
@@ -127,24 +155,6 @@ export default async function BusinessDashboard() {
           </Link>
         </div>
       </div>
-
-      {/* No business profile notice */}
-      {!business && (
-        <Card className="shadow-sm border-warning/30 bg-warning/5">
-          <CardContent className="flex items-center gap-3 py-4">
-            <AlertCircle className="h-5 w-5 text-warning shrink-0" />
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-foreground">No business profile yet</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Set up your business profile to start receiving appointments and appearing in search.
-              </p>
-            </div>
-            <Link href="/dashboard/business/settings" className={cn(buttonVariants({ size: 'sm', variant: 'outline' }))}>
-              Set up now
-            </Link>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

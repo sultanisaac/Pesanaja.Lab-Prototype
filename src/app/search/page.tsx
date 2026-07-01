@@ -30,7 +30,8 @@ export default async function SearchPage(props: {
       addresses ( city, state ),
       reviews ( rating )
     `)
-    .eq('is_active', true);
+    .eq('is_active', true)
+    .eq('status', 'verified');
 
   // Filter by business name
   if (query) {

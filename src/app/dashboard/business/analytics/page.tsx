@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 import BusinessAnalyticsClient from './BusinessAnalyticsClient'
 
 type Period = '7d' | '30d' | '90d'
@@ -14,12 +15,15 @@ export default async function BusinessAnalyticsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Get the business owned by this user
   const { data: business } = await supabase
     .from('businesses')
-    .select('id, name')
+    .select('id, name, status, payment_status')
     .eq('owner_id', user?.id)
     .single()
+
+  if (!business || business.payment_status !== 'paid' || business.status !== 'verified') {
+    redirect('/dashboard/business')
+  }
 
   const businessId = business?.id
   const businessName = business?.name ?? ''

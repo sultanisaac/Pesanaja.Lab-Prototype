@@ -76,7 +76,7 @@ export default async function SubscriptionPage() {
     .eq('owner_id', user?.id)
     .single()
 
-  // Simulate current plan — you'd store this in your DB/Stripe in production
+  // Simulate current plan — you'd store this in your DB/Xendit in production
   const currentPlan = 'starter'
 
   return (

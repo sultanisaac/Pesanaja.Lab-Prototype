@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Calendar as CalendarIcon, Clock, TrendingUp, AlertCircle } from 'lucide-react'
+import { Calendar as CalendarIcon, Clock, TrendingUp } from 'lucide-react'
 import { AppointmentsClient } from './AppointmentsClient'
 
 export default async function BusinessAppointmentsPage() {
@@ -12,18 +12,12 @@ export default async function BusinessAppointmentsPage() {
   // Get business details
   const { data: business } = await supabase
     .from('businesses')
-    .select('id')
+    .select('id, status, payment_status')
     .eq('owner_id', user.id)
     .single()
 
-  if (!business) {
-    return (
-      <div className="flex flex-col items-center justify-center h-64 text-center">
-        <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-        <h2 className="text-xl font-bold text-foreground">No Business Profile Found</h2>
-        <p className="text-muted-foreground mt-2">You need a business profile to view appointments.</p>
-      </div>
-    )
+  if (!business || business.payment_status !== 'paid' || business.status !== 'verified') {
+    redirect('/dashboard/business')
   }
 
   // Fetch all bookings for this business

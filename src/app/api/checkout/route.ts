@@ -1,19 +1,16 @@
 import { NextResponse } from 'next/server'
-import Stripe from 'stripe'
 import { Xendit } from 'xendit-node'
 import { createClient } from '@/lib/supabase/server'
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  // @ts-expect-error - TS expects a specific literal that changes per SDK version
-  apiVersion: '2025-02-24.acacia',
-})
 
 const xendit = new Xendit({
   secretKey: process.env.XENDIT_SECRET_KEY || 'xnd_development_placeholder',
 })
 
-export async function POST() {
+export async function POST(req: Request) {
   try {
+    const body = await req.json()
+    const { businessId, upgradeId } = body
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -21,48 +18,25 @@ export async function POST() {
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
-    const provider = process.env.PAYMENT_PROVIDER || 'stripe'
-
-    if (provider === 'xendit') {
-      const invoice = await xendit.Invoice.createInvoice({
-        data: {
-          externalId: `sub-${user.id}-${Date.now()}`,
-          amount: 150000, // Rp 150.000
-          payerEmail: user.email,
-          description: 'Subscription to Pesanaja.Lab',
-          successRedirectUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/dashboard/business?success=true`,
-          failureRedirectUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/dashboard/business?canceled=true`,
-          currency: 'IDR'
-        }
-      })
-      
-      return NextResponse.json({ url: invoice.invoiceUrl })
+    if (!businessId && !upgradeId) {
+      return new NextResponse('Missing businessId or upgradeId', { status: 400 })
     }
 
-    // Default: Stripe checkout session
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      billing_address_collection: 'required',
-      customer_email: user.email,
-      line_items: [
-        {
-          price_data: {
-            currency: 'idr',
-            product: 'prod_UmUeVZrVPzrARG',
-            unit_amount: 15000000, // Rp 150.000,00
-            recurring: {
-              interval: 'month',
-            },
-          },
-          quantity: 1,
-        },
-      ],
-      mode: 'subscription',
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/dashboard/business?success=true`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/dashboard/business?canceled=true`,
-    })
+    const externalId = businessId ? `business_id:${businessId}` : `upgrade_id:${upgradeId}`
 
-    return NextResponse.json({ url: session.url })
+    const invoice = await xendit.Invoice.createInvoice({
+      data: {
+        externalId: externalId,
+        amount: 150000, // Rp 150.000
+        payerEmail: user.email,
+        description: 'Subscription to Pesanaja.Lab',
+        successRedirectUrl: `https://pesanajalab-prototype.vercel.app/dashboard/business`,
+        failureRedirectUrl: `https://pesanajalab-prototype.vercel.app/dashboard/business?canceled=true`,
+        currency: 'IDR'
+      }
+    })
+    
+    return NextResponse.json({ url: invoice.invoiceUrl })
   } catch (error) {
     console.error('Payment error:', error)
     const errorMessage = error instanceof Error ? error.message : 'Internal Error'
