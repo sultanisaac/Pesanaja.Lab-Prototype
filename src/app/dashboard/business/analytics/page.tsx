@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 import BusinessAnalyticsClient from './BusinessAnalyticsClient'
 
 type Period = '7d' | '30d' | '90d'
