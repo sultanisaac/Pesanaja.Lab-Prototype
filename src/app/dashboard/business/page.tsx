@@ -23,128 +23,37 @@ export default async function BusinessDashboard() {
   // Get this owner's business
   const { data: business } = await supabase
     .from('businesses')
-    .select('id, name, status, is_active')
+    .select('id, name, status, payment_status, is_active')
     .eq('owner_id', user?.id)
     .single()
 
-  // Fetch real data in parallel
-  const businessId = business?.id ?? null
-
-  const [bookingsRes, reviewsRes, servicesRes] = await Promise.all([
-    businessId
-      ? supabase
-          .from('bookings')
-          .select('id, status, total_price, scheduled_at, customer:profiles!bookings_customer_id_fkey(first_name, last_name, email), service:services!bookings_service_id_fkey(name)')
-          .eq('business_id', businessId)
-          .order('scheduled_at', { ascending: false })
-          .limit(5)
-      : Promise.resolve({ data: [] }),
-    businessId
-      ? supabase
-          .from('reviews')
-          .select('rating')
-          .eq('business_id', businessId)
-      : Promise.resolve({ data: [] }),
-    businessId
-      ? supabase
-          .from('services')
-          .select('id')
-          .eq('business_id', businessId)
-          .eq('is_active', true)
-      : Promise.resolve({ data: [] }),
-  ])
-
-  const bookings = bookingsRes.data ?? []
-  const reviews = reviewsRes.data ?? []
-  const services = servicesRes.data ?? []
-
-  // Compute stats
-  const totalRevenue = bookings.reduce((sum, b) => sum + (Number(b.total_price) ?? 0), 0)
-  const totalBookings = bookings.length
-  const avgRating = reviews.length
-    ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
-    : '—'
-  const activeServices = services.length
-
-  const stats = [
-    {
-      label: 'Total Revenue',
-      value: totalRevenue > 0 ? `Rp ${totalRevenue.toLocaleString('id-ID')}` : 'Rp 0',
-      sub: 'From all completed bookings',
-      icon: DollarSign,
-      color: 'text-success',
-      bg: 'bg-success/10',
-    },
-    {
-      label: 'Total Bookings',
-      value: String(totalBookings),
-      sub: 'All time',
-      icon: Calendar,
-      color: 'text-primary',
-      bg: 'bg-primary/10',
-    },
-    {
-      label: 'Avg. Rating',
-      value: avgRating,
-      sub: `${reviews.length} review${reviews.length !== 1 ? 's' : ''}`,
-      icon: Activity,
-      color: 'text-warning',
-      bg: 'bg-warning/10',
-    },
-    {
-      label: 'Active Services',
-      value: String(activeServices),
-      sub: 'Listed on your profile',
-      icon: Users,
-      color: 'text-destructive',
-      bg: 'bg-destructive/10',
-    },
-  ]
-
-  const statusConfig: Record<string, { label: string; classes: string }> = {
-    pending:   { label: 'Pending',   classes: 'bg-warning/10 text-warning' },
-    confirmed: { label: 'Confirmed', classes: 'bg-success/10 text-success' },
-    completed: { label: 'Completed', classes: 'bg-primary/10 text-primary' },
-    cancelled: { label: 'Cancelled', classes: 'bg-destructive/10 text-destructive' },
+  // Lock logic
+  if (!business || business.payment_status !== 'paid') {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+        <AlertCircle className="h-12 w-12 text-warning" />
+        <h1 className="text-2xl font-bold">Start your business</h1>
+        <p className="text-muted-foreground max-w-md">
+          {business ? 'You need to complete your subscription payment to unlock your dashboard.' : 'Set up your business profile and subscribe to start receiving appointments.'}
+        </p>
+        <Link href="/dashboard/business/settings" className={cn(buttonVariants({ size: 'lg' }))}>
+          {business ? 'Complete Payment' : 'Go to Business Settings'}
+        </Link>
+      </div>
+    )
   }
 
-  return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-heading font-bold text-foreground">Business Hub</h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Welcome back, {displayName}. Here&apos;s your live performance overview.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link href="/dashboard/business/analytics" className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>
-            <BarChart2 className="mr-2 h-4 w-4" /> Analytics
-          </Link>
-          <Link href="/dashboard/business/appointments" className={cn(buttonVariants({ size: 'sm' }))}>
-            <Briefcase className="mr-2 h-4 w-4" /> Appointments
-          </Link>
-        </div>
+  if (business.status !== 'verified') {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+        <Clock className="h-12 w-12 text-primary" />
+        <h1 className="text-2xl font-bold">Waiting confirm or approval</h1>
+        <p className="text-muted-foreground max-w-md">
+          Your payment was successful! Our admin team is currently reviewing your business details. Your dashboard will be unlocked shortly.
+        </p>
       </div>
-
-      {/* No business profile notice */}
-      {!business && (
-        <Card className="shadow-sm border-warning/30 bg-warning/5">
-          <CardContent className="flex items-center gap-3 py-4">
-            <AlertCircle className="h-5 w-5 text-warning shrink-0" />
-            <div className="flex-1">
-              <p className="text-sm font-semibold text-foreground">No business profile yet</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Set up your business profile to start receiving appointments and appearing in search.
-              </p>
-            </div>
-            <Link href="/dashboard/business/settings" className={cn(buttonVariants({ size: 'sm', variant: 'outline' }))}>
-              Set up now
-            </Link>
-          </CardContent>
-        </Card>
-      )}
+    )
+  }
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

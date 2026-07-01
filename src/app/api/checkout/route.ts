@@ -6,8 +6,11 @@ const xendit = new Xendit({
   secretKey: process.env.XENDIT_SECRET_KEY || 'xnd_development_placeholder',
 })
 
-export async function POST() {
+export async function POST(req: Request) {
   try {
+    const body = await req.json()
+    const { businessId, upgradeId } = body
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -15,14 +18,20 @@ export async function POST() {
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
+    if (!businessId && !upgradeId) {
+      return new NextResponse('Missing businessId or upgradeId', { status: 400 })
+    }
+
+    const externalId = businessId ? `business_id:${businessId}` : `upgrade_id:${upgradeId}`
+
     const invoice = await xendit.Invoice.createInvoice({
       data: {
-        externalId: `sub-${user.id}-${Date.now()}`,
+        externalId: externalId,
         amount: 150000, // Rp 150.000
         payerEmail: user.email,
         description: 'Subscription to Pesanaja.Lab',
-        successRedirectUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/dashboard/business?success=true`,
-        failureRedirectUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/dashboard/business?canceled=true`,
+        successRedirectUrl: `https://pesanajalab-prototype.vercel.app/dashboard/business`,
+        failureRedirectUrl: `https://pesanajalab-prototype.vercel.app/dashboard/business?canceled=true`,
         currency: 'IDR'
       }
     })
