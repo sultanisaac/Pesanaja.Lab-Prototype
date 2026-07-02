@@ -33,20 +33,15 @@ export async function updateBusinessProfile(formData: FormData): Promise<void> {
     .eq('owner_id', user.id)
     .single()
 
-  let businessId = existing?.id
-
   if (existing) {
     await supabase
       .from('businesses')
       .update({ name, description, contact_email, contact_phone, operating_hours, updated_at: new Date().toISOString() })
       .eq('owner_id', user.id)
   } else {
-    const { data: newBusiness } = await supabase
+    await supabase
       .from('businesses')
       .insert({ owner_id: user.id, name, description, contact_email, contact_phone, operating_hours, payment_status: 'unpaid', status: 'pending' })
-      .select('id')
-      .single()
-    businessId = newBusiness?.id
 
     // Notify all admins about the new business verification request
     const { data: admins } = await supabase

@@ -40,7 +40,7 @@ export async function submitUpgradeRequest(formData: FormData): Promise<void> {
     redirect('/dashboard/customer?error=You+already+have+a+pending+request')
   }
 
-  const { data: newRequest, error } = await supabase
+  const { error } = await supabase
     .from('business_upgrade_requests')
     .insert({
       user_id: user.id,
@@ -50,8 +50,6 @@ export async function submitUpgradeRequest(formData: FormData): Promise<void> {
       contact_phone,
       payment_status: 'unpaid'
     })
-    .select('id')
-    .single()
 
   if (error) {
     redirect(`/dashboard/customer?error=${encodeURIComponent(error.message)}`)
