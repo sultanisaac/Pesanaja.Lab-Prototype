@@ -62,6 +62,12 @@ export async function submitUpgradeRequest(formData: FormData): Promise<void> {
     .eq('role', 'admin')
 
   if (admins && admins.length > 0) {
+    const { createClient: createSupabaseClient } = await import('@supabase/supabase-js')
+    const adminAuth = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+    
     const notifications = admins.map((admin) => ({
       user_id: admin.id,
       title: 'New Business Verification Request',
@@ -69,7 +75,7 @@ export async function submitUpgradeRequest(formData: FormData): Promise<void> {
       link: '/dashboard/admin/verifications',
     }))
     
-    await supabase.from('notifications').insert(notifications)
+    await adminAuth.from('notifications').insert(notifications)
   }
 
   revalidatePath('/dashboard/customer')
