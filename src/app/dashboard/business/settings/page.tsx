@@ -111,13 +111,14 @@ export default async function BusinessSettingsPage() {
           </Card>
 
           {/* Business details form */}
-          <Card className="shadow-sm">
-            <CardHeader>
+          <form action={updateBusinessProfile} className="space-y-6">
+            <Card className="shadow-sm">
+              <CardHeader>
               <CardTitle className="text-base font-semibold">Business Information</CardTitle>
               <CardDescription>This information is visible to all customers</CardDescription>
             </CardHeader>
             <CardContent>
-              <form action={updateBusinessProfile} className="space-y-4">
+              <div className="space-y-4">
                 <div className="space-y-1.5">
                   <label htmlFor="name" className="text-sm font-medium text-foreground flex items-center gap-1.5">
                     <Briefcase className="h-3.5 w-3.5" /> Business Name <span className="text-destructive">*</span>
@@ -176,31 +177,33 @@ export default async function BusinessSettingsPage() {
                     />
                   </div>
                 </div>
-
-                <div className="pt-2 flex items-center gap-3">
-                  <button
-                    type="submit"
-                    className="px-6 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors"
-                  >
-                    {business ? 'Save Changes' : 'Create Business Profile'}
-                  </button>
-                  {business && (
-                    <a
-                      href={`/business/${business.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-primary hover:underline"
-                    >
-                      View public page ↗
-                    </a>
-                  )}
-                </div>
-              </form>
+              </div>
             </CardContent>
           </Card>
 
           {/* Operating Hours Form */}
           <OperatingHoursForm currentHours={business?.operating_hours} />
+
+          {/* Save Button */}
+          <div className="pt-2 flex flex-row-reverse items-center gap-4 justify-start bg-background p-4 rounded-xl border border-border shadow-sm">
+            <button
+              type="submit"
+              className="px-8 py-2.5 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors shadow-sm"
+            >
+              {business ? 'Save All Changes' : 'Create Business Profile'}
+            </button>
+            {business && (
+              <a
+                href={`/business/${business.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-medium text-primary hover:underline"
+              >
+                View public page ↗
+              </a>
+            )}
+          </div>
+        </form>
 
           {/* Services and Locations Managers */}
           {business && (

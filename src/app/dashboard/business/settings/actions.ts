@@ -16,6 +16,16 @@ export async function updateBusinessProfile(formData: FormData): Promise<void> {
   const description = formData.get('description') as string
   const contact_email = formData.get('contact_email') as string
   const contact_phone = formData.get('contact_phone') as string
+  const operating_hours_str = formData.get('operating_hours') as string
+  
+  let operating_hours = undefined
+  if (operating_hours_str) {
+    try {
+      operating_hours = JSON.parse(operating_hours_str)
+    } catch (e) {
+      console.error('Failed to parse operating_hours', e)
+    }
+  }
 
   if (!name) redirect('/dashboard/business/settings?error=Business+name+is+required')
 
@@ -30,12 +40,12 @@ export async function updateBusinessProfile(formData: FormData): Promise<void> {
   if (existing) {
     await supabase
       .from('businesses')
-      .update({ name, description, contact_email, contact_phone, updated_at: new Date().toISOString() })
+      .update({ name, description, contact_email, contact_phone, operating_hours, updated_at: new Date().toISOString() })
       .eq('owner_id', user.id)
   } else {
     const { data: newBusiness } = await supabase
       .from('businesses')
-      .insert({ owner_id: user.id, name, description, contact_email, contact_phone, payment_status: 'unpaid', status: 'pending' })
+      .insert({ owner_id: user.id, name, description, contact_email, contact_phone, operating_hours, payment_status: 'unpaid', status: 'pending' })
       .select('id')
       .single()
     businessId = newBusiness?.id

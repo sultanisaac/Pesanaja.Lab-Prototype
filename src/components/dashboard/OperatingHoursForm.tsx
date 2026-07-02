@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Clock, Loader2 } from 'lucide-react'
-import { updateOperatingHours } from '@/app/dashboard/business/settings/actions'
+import { Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export type OperatingHours = {
@@ -30,8 +29,7 @@ export function OperatingHoursForm({ currentHours }: { currentHours: Partial<Ope
   const [hours, setHours] = useState<OperatingHours>(
     currentHours && Object.keys(currentHours).length > 0 ? (currentHours as OperatingHours) : defaultHours
   )
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
+
 
   const handleToggle = (day: keyof OperatingHours) => {
     setHours((prev) => ({
@@ -47,35 +45,6 @@ export function OperatingHoursForm({ currentHours }: { currentHours: Partial<Ope
     }))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setMessage(null)
-
-    // Validate times
-    for (const day of Object.keys(hours) as (keyof OperatingHours)[]) {
-      const dayConfig = hours[day];
-      if (dayConfig.isOpen) {
-        if (dayConfig.openTime >= dayConfig.closeTime) {
-          setMessage({ text: `Invalid times for ${day.charAt(0).toUpperCase() + day.slice(1)}. Open time must be before close time.`, type: 'error' })
-          setLoading(false)
-          return
-        }
-      }
-    }
-
-    const formData = new FormData()
-    formData.append('operating_hours', JSON.stringify(hours))
-
-    const res = await updateOperatingHours(formData)
-    setLoading(false)
-    if (res?.error) {
-      setMessage({ text: res.error, type: 'error' })
-    } else {
-      setMessage({ text: 'Operating hours updated successfully!', type: 'success' })
-      setTimeout(() => setMessage(null), 3000)
-    }
-  }
 
   return (
     <Card className="shadow-sm">
@@ -86,15 +55,8 @@ export function OperatingHoursForm({ currentHours }: { currentHours: Partial<Ope
         <CardDescription>Set the times when customers can book your services</CardDescription>
       </CardHeader>
       <CardContent>
-        {message && (
-          <div className={cn(
-            "p-3 mb-4 rounded-lg text-sm border flex items-center justify-between",
-            message.type === 'success' ? "bg-success/10 text-success border-success/20" : "bg-destructive/10 text-destructive border-destructive/20"
-          )}>
-            {message.text}
-          </div>
-        )}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
+          <input type="hidden" name="operating_hours" value={JSON.stringify(hours)} />
           <div className="space-y-3">
             {DAYS.map((day) => {
               const dayConfig = hours[day]
@@ -148,18 +110,7 @@ export function OperatingHoursForm({ currentHours }: { currentHours: Partial<Ope
               )
             })}
           </div>
-          
-          <div className="pt-2 flex justify-end">
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-6 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
-            >
-              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              Save Availability
-            </button>
-          </div>
-        </form>
+        </div>
       </CardContent>
     </Card>
   )
