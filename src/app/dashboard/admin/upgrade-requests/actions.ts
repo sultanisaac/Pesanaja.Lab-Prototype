@@ -4,6 +4,15 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+
+function getAdminClient() {
+  return createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
+
 async function verifyAdmin() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -22,6 +31,7 @@ async function verifyAdmin() {
 
 export async function approveUpgradeRequest(formData: FormData): Promise<void> {
   const { supabase, adminId } = await verifyAdmin()
+  const adminAuth = getAdminClient()
 
   const requestId = formData.get('request_id') as string
   const adminNote = (formData.get('admin_note') as string)?.trim() ?? ''
@@ -39,7 +49,7 @@ export async function approveUpgradeRequest(formData: FormData): Promise<void> {
   }
 
   // 1. Update the request status
-  await supabase
+  await adminAuth
     .from('business_upgrade_requests')
     .update({
       status: 'approved',
@@ -51,13 +61,13 @@ export async function approveUpgradeRequest(formData: FormData): Promise<void> {
     .eq('id', requestId)
 
   // 2. Change the user's role to 'business'
-  await supabase
+  await adminAuth
     .from('profiles')
     .update({ role: 'business', updated_at: new Date().toISOString() })
     .eq('id', request.user_id)
 
   // 3. Create a business record for them
-  await supabase
+  await adminAuth
     .from('businesses')
     .insert({
       owner_id: request.user_id,
@@ -74,12 +84,13 @@ export async function approveUpgradeRequest(formData: FormData): Promise<void> {
 }
 
 export async function rejectUpgradeRequest(formData: FormData): Promise<void> {
-  const { supabase, adminId } = await verifyAdmin()
+  const { adminId } = await verifyAdmin()
+  const adminAuth = getAdminClient()
 
   const requestId = formData.get('request_id') as string
   const adminNote = (formData.get('admin_note') as string)?.trim() ?? ''
 
-  await supabase
+  await adminAuth
     .from('business_upgrade_requests')
     .update({
       status: 'rejected',
