@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Clock, Loader2 } from 'lucide-react'
-import { updateOperatingHours } from '@/app/dashboard/business/settings/actions'
+import { Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export type OperatingHours = {
@@ -30,8 +29,7 @@ export function OperatingHoursForm({ currentHours }: { currentHours: Partial<Ope
   const [hours, setHours] = useState<OperatingHours>(
     currentHours && Object.keys(currentHours).length > 0 ? (currentHours as OperatingHours) : defaultHours
   )
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null)
+
 
   const handleToggle = (day: keyof OperatingHours) => {
     setHours((prev) => ({
@@ -47,35 +45,6 @@ export function OperatingHoursForm({ currentHours }: { currentHours: Partial<Ope
     }))
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setMessage(null)
-
-    // Validate times
-    for (const day of Object.keys(hours) as (keyof OperatingHours)[]) {
-      const dayConfig = hours[day];
-      if (dayConfig.isOpen) {
-        if (dayConfig.openTime >= dayConfig.closeTime) {
-          setMessage({ text: `Invalid times for ${day.charAt(0).toUpperCase() + day.slice(1)}. Open time must be before close time.`, type: 'error' })
-          setLoading(false)
-          return
-        }
-      }
-    }
-
-    const formData = new FormData()
-    formData.append('operating_hours', JSON.stringify(hours))
-
-    const res = await updateOperatingHours(formData)
-    setLoading(false)
-    if (res?.error) {
-      setMessage({ text: res.error, type: 'error' })
-    } else {
-      setMessage({ text: 'Operating hours updated successfully!', type: 'success' })
-      setTimeout(() => setMessage(null), 3000)
-    }
-  }
 
   return (
     <Card className="shadow-sm">
