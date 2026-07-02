@@ -4,6 +4,15 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+
+function getAdminClient() {
+  return createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
+
 export async function updateBusinessStatus(formData: FormData): Promise<void> {
   const supabase = await createClient()
 
@@ -26,7 +35,8 @@ export async function updateBusinessStatus(formData: FormData): Promise<void> {
 
   if (!businessId || !status) return
 
-  const { error } = await supabase
+  const adminAuth = getAdminClient()
+  const { error } = await adminAuth
     .from('businesses')
     .update({ status, updated_at: new Date().toISOString() })
     .eq('id', businessId)

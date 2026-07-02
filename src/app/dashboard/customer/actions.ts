@@ -59,6 +59,23 @@ export async function submitUpgradeRequest(formData: FormData): Promise<void> {
     redirect(`/dashboard/customer?error=${encodeURIComponent(error.message)}`)
   }
 
+  // Notify all admins about the new business verification request
+  const { data: admins } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('role', 'admin')
+
+  if (admins && admins.length > 0) {
+    const notifications = admins.map((admin) => ({
+      user_id: admin.id,
+      title: 'New Business Verification Request',
+      message: `${business_name} has requested to be verified as a business.`,
+      link: '/dashboard/admin/verifications',
+    }))
+    
+    await supabase.from('notifications').insert(notifications)
+  }
+
   // Redirect to Xendit checkout
   let invoiceUrl = ''
   try {

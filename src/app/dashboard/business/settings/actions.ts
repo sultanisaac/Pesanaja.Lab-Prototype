@@ -49,6 +49,23 @@ export async function updateBusinessProfile(formData: FormData): Promise<void> {
       .select('id')
       .single()
     businessId = newBusiness?.id
+
+    // Notify all admins about the new business verification request
+    const { data: admins } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('role', 'admin')
+
+    if (admins && admins.length > 0) {
+      const notifications = admins.map((admin) => ({
+        user_id: admin.id,
+        title: 'New Business Verification Request',
+        message: `${name} has requested to be verified as a business.`,
+        link: '/dashboard/admin/verifications',
+      }))
+      
+      await supabase.from('notifications').insert(notifications)
+    }
   }
 
   // Redirect to checkout if not paid
