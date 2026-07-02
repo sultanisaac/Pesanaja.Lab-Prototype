@@ -3,8 +3,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createSubscriptionInvoice } from '@/lib/xendit'
-
 // Using regular client since RLS is configured appropriately
 
 export async function updateBusinessProfile(formData: FormData): Promise<void> {
@@ -35,20 +33,15 @@ export async function updateBusinessProfile(formData: FormData): Promise<void> {
     .eq('owner_id', user.id)
     .single()
 
-  let businessId = existing?.id
-
   if (existing) {
     await supabase
       .from('businesses')
       .update({ name, description, contact_email, contact_phone, operating_hours, updated_at: new Date().toISOString() })
       .eq('owner_id', user.id)
   } else {
-    const { data: newBusiness } = await supabase
+    await supabase
       .from('businesses')
       .insert({ owner_id: user.id, name, description, contact_email, contact_phone, operating_hours, payment_status: 'unpaid', status: 'pending' })
-      .select('id')
-      .single()
-    businessId = newBusiness?.id
 
     // Notify all admins about the new business verification request
     const { data: admins } = await supabase
@@ -66,24 +59,6 @@ export async function updateBusinessProfile(formData: FormData): Promise<void> {
       
       await supabase.from('notifications').insert(notifications)
     }
-  }
-
-  // Redirect to checkout if not paid
-  let invoiceUrl = ''
-  if (!existing || existing.payment_status === 'unpaid') {
-    try {
-      const invoice = await createSubscriptionInvoice(`business_id:${businessId}`, user.email || '')
-      if (invoice.invoiceUrl) {
-        invoiceUrl = invoice.invoiceUrl
-      }
-    } catch (e) {
-      console.error('Checkout redirect error:', e)
-      redirect('/dashboard/business/settings?error=Payment+setup+failed')
-    }
-  }
-
-  if (invoiceUrl) {
-    redirect(invoiceUrl)
   }
 
   revalidatePath('/dashboard/business/settings')
