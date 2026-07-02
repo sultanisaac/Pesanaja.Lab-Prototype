@@ -86,15 +86,8 @@ export function OperatingHoursForm({ currentHours }: { currentHours: Partial<Ope
         <CardDescription>Set the times when customers can book your services</CardDescription>
       </CardHeader>
       <CardContent>
-        {message && (
-          <div className={cn(
-            "p-3 mb-4 rounded-lg text-sm border flex items-center justify-between",
-            message.type === 'success' ? "bg-success/10 text-success border-success/20" : "bg-destructive/10 text-destructive border-destructive/20"
-          )}>
-            {message.text}
-          </div>
-        )}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-4">
+          <input type="hidden" name="operating_hours" value={JSON.stringify(hours)} />
           <div className="space-y-3">
             {DAYS.map((day) => {
               const dayConfig = hours[day]
@@ -148,18 +141,7 @@ export function OperatingHoursForm({ currentHours }: { currentHours: Partial<Ope
               )
             })}
           </div>
-          
-          <div className="pt-2 flex justify-end">
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-6 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
-            >
-              {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-              Save Availability
-            </button>
-          </div>
-        </form>
+        </div>
       </CardContent>
     </Card>
   )
