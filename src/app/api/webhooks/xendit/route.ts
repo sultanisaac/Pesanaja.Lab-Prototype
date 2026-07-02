@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { revalidatePath } from 'next/cache'
 
 export async function POST(req: Request) {
   try {
@@ -35,7 +36,7 @@ export async function POST(req: Request) {
       // Update payment status (DB trigger will automatically notify admins)
       await supabase
         .from('businesses')
-        .update({ payment_status: 'paid' })
+        .update({ payment_status: 'paid', is_active: true })
         .eq('id', businessId)
 
     } else if (externalId.startsWith('upgrade_id:')) {
@@ -47,6 +48,8 @@ export async function POST(req: Request) {
         .update({ payment_status: 'paid' })
         .eq('id', upgradeId)
     }
+
+    revalidatePath('/', 'layout')
 
     return new NextResponse('OK', { status: 200 })
   } catch (error) {
