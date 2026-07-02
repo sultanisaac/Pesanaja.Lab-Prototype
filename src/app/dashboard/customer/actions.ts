@@ -60,14 +60,19 @@ export async function submitUpgradeRequest(formData: FormData): Promise<void> {
   }
 
   // Redirect to Xendit checkout
+  let invoiceUrl = ''
   try {
     const invoice = await createSubscriptionInvoice(`upgrade_id:${newRequest.id}`, user.email || '')
     if (invoice.invoiceUrl) {
-      redirect(invoice.invoiceUrl)
+      invoiceUrl = invoice.invoiceUrl
     }
   } catch (e) {
     console.error('Checkout error:', e)
     redirect('/dashboard/customer?error=Payment+setup+failed')
+  }
+
+  if (invoiceUrl) {
+    redirect(invoiceUrl)
   }
 
   revalidatePath('/dashboard/customer')
