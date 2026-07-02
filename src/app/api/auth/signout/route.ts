@@ -3,6 +3,6 @@ import { redirect } from 'next/navigation'
 
 export async function POST() {
   const supabase = await createClient()
-  await supabase.auth.signOut()
+  await supabase.auth.signOut({ scope: 'local' })
   redirect('/login')
 }

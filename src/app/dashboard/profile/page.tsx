@@ -1,8 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { User, Mail, Shield, Phone, Lock } from 'lucide-react'
-import { updateProfile, updatePassword } from './actions'
+import { updateProfile } from './actions'
 import { AvatarUpload } from '@/components/dashboard/AvatarUpload'
+import { ChangePasswordForm } from '@/components/dashboard/ChangePasswordForm'
 
 const roleLabels: Record<string, { label: string; color: string }> = {
   customer: { label: 'Customer', color: 'bg-primary/10 text-primary' },
@@ -151,34 +152,7 @@ export default async function ProfileSettingsPage() {
             <CardDescription>Update your account password</CardDescription>
           </CardHeader>
           <CardContent>
-            <form action={updatePassword} className="space-y-4">
-              <div className="space-y-1.5">
-                <label htmlFor="new_password" className="text-sm font-medium text-foreground">New Password</label>
-                <input
-                  id="new_password"
-                  name="new_password"
-                  type="password"
-                  className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
-                  placeholder="Minimum 6 characters"
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label htmlFor="confirm_password" className="text-sm font-medium text-foreground">Confirm Password</label>
-                <input
-                  id="confirm_password"
-                  name="confirm_password"
-                  type="password"
-                  className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
-                  placeholder="Re-enter new password"
-                />
-              </div>
-              <button
-                type="submit"
-                className="w-full sm:w-auto px-6 py-2 bg-foreground text-white text-sm font-medium rounded-lg hover:bg-foreground/80 transition-colors"
-              >
-                Update Password
-              </button>
-            </form>
+            <ChangePasswordForm />
           </CardContent>
         </Card>
       )}
