@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { createSubscriptionInvoice } from '@/lib/xendit'
 
 // Using regular client since RLS is configured appropriately
 
@@ -34,7 +35,7 @@ export async function updateBusinessProfile(formData: FormData): Promise<void> {
   } else {
     const { data: newBusiness } = await supabase
       .from('businesses')
-      .insert({ owner_id: user.id, name, description, contact_email, contact_phone })
+      .insert({ owner_id: user.id, name, description, contact_email, contact_phone, payment_status: 'unpaid', status: 'pending' })
       .select('id')
       .single()
     businessId = newBusiness?.id
@@ -43,15 +44,9 @@ export async function updateBusinessProfile(formData: FormData): Promise<void> {
   // Redirect to checkout if not paid
   if (!existing || existing.payment_status === 'unpaid') {
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pesanajalab-prototype.vercel.app'
-      const res = await fetch(`${baseUrl}/api/checkout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ businessId }),
-      })
-      const data = await res.json()
-      if (data.url) {
-        redirect(data.url)
+      const invoice = await createSubscriptionInvoice(`business_id:${businessId}`, user.email || '')
+      if (invoice.invoiceUrl) {
+        redirect(invoice.invoiceUrl)
       }
     } catch (e) {
       console.error('Checkout redirect error:', e)
