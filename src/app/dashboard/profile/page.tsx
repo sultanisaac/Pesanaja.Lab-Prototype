@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { User, Mail, Shield, Phone, Lock } from 'lucide-react'
-import { updateProfile, updatePassword } from './actions'
+import { updateProfile } from './actions'
 import { AvatarUpload } from '@/components/dashboard/AvatarUpload'
 import { ChangePasswordForm } from '@/components/dashboard/ChangePasswordForm'
 

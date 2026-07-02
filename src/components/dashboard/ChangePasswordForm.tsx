@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { updatePassword } from '@/app/dashboard/profile/actions'
-import { Lock } from 'lucide-react'
+
 
 export function ChangePasswordForm() {
   const [newPassword, setNewPassword] = useState('')
