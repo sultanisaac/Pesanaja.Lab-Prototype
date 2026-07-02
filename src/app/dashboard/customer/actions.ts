@@ -3,8 +3,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createSubscriptionInvoice } from '@/lib/xendit'
-
 export async function submitUpgradeRequest(formData: FormData): Promise<void> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -74,22 +72,6 @@ export async function submitUpgradeRequest(formData: FormData): Promise<void> {
     }))
     
     await supabase.from('notifications').insert(notifications)
-  }
-
-  // Redirect to Xendit checkout
-  let invoiceUrl = ''
-  try {
-    const invoice = await createSubscriptionInvoice(`upgrade_id:${newRequest.id}`, user.email || '')
-    if (invoice.invoiceUrl) {
-      invoiceUrl = invoice.invoiceUrl
-    }
-  } catch (e) {
-    console.error('Checkout error:', e)
-    redirect('/dashboard/customer?error=Payment+setup+failed')
-  }
-
-  if (invoiceUrl) {
-    redirect(invoiceUrl)
   }
 
   revalidatePath('/dashboard/customer')

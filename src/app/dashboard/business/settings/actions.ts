@@ -3,8 +3,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createSubscriptionInvoice } from '@/lib/xendit'
-
 // Using regular client since RLS is configured appropriately
 
 export async function updateBusinessProfile(formData: FormData): Promise<void> {
@@ -66,24 +64,6 @@ export async function updateBusinessProfile(formData: FormData): Promise<void> {
       
       await supabase.from('notifications').insert(notifications)
     }
-  }
-
-  // Redirect to checkout if not paid
-  let invoiceUrl = ''
-  if (!existing || existing.payment_status === 'unpaid') {
-    try {
-      const invoice = await createSubscriptionInvoice(`business_id:${businessId}`, user.email || '')
-      if (invoice.invoiceUrl) {
-        invoiceUrl = invoice.invoiceUrl
-      }
-    } catch (e) {
-      console.error('Checkout redirect error:', e)
-      redirect('/dashboard/business/settings?error=Payment+setup+failed')
-    }
-  }
-
-  if (invoiceUrl) {
-    redirect(invoiceUrl)
   }
 
   revalidatePath('/dashboard/business/settings')

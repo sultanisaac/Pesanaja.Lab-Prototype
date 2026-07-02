@@ -75,7 +75,8 @@ export async function approveUpgradeRequest(formData: FormData): Promise<void> {
       description: request.description,
       contact_email: request.contact_email,
       contact_phone: request.contact_phone,
-      status: 'pending', // still needs verification
+      status: 'verified', // Admin approved, ready for payment
+      payment_status: 'unpaid'
     })
 
   revalidatePath('/dashboard/admin/verifications')
