@@ -13,6 +13,7 @@ type Business = {
   name: string
   description: string | null
   status: string
+  payment_status: string
   contact_email: string | null
   contact_phone: string | null
   is_active: boolean
@@ -62,6 +63,7 @@ export default function BusinessesClient({ businesses }: { businesses: Business[
                     <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Business</th>
                     <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Owner</th>
                     <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
+                    <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Payment</th>
                     <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Active</th>
                     <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Registered</th>
                   </tr>
@@ -99,6 +101,14 @@ export default function BusinessesClient({ businesses }: { businesses: Business[
                         <td className="py-3 px-2">
                           <span className={cn('text-[10px] font-semibold px-2 py-1 rounded-full capitalize', cfg.color)}>
                             {cfg.label}
+                          </span>
+                        </td>
+                        <td className="py-3 px-2">
+                          <span className={cn(
+                            'text-[10px] font-semibold px-2 py-1 rounded-full capitalize',
+                            biz.payment_status === 'paid' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
+                          )}>
+                            {biz.payment_status || 'unpaid'}
                           </span>
                         </td>
                         <td className="py-3 px-2">
@@ -149,6 +159,12 @@ export default function BusinessesClient({ businesses }: { businesses: Business[
                           statusConfig[selectedBiz.status]?.color || statusConfig.pending.color
                         )}>
                           {statusConfig[selectedBiz.status]?.label || 'Pending'}
+                        </span>
+                        <span className={cn(
+                          'text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize',
+                          selectedBiz.payment_status === 'paid' ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
+                        )}>
+                          {selectedBiz.payment_status || 'unpaid'}
                         </span>
                         <span className={cn(
                           'text-[10px] font-semibold px-2 py-0.5 rounded-full',

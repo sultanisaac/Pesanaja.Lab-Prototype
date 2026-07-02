@@ -31,7 +31,8 @@ export default async function SearchPage(props: {
       reviews ( rating )
     `)
     .eq('is_active', true)
-    .eq('status', 'verified');
+    .eq('status', 'verified')
+    .eq('payment_status', 'paid');
 
   // Filter by business name
   if (query) {

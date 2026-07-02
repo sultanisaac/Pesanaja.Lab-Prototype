@@ -27,29 +27,59 @@ export default async function BusinessDashboard() {
     .eq('owner_id', user?.id)
     .single()
 
-  // Lock logic
-  if (!business || business.payment_status !== 'paid') {
+  // 1. Lock logic: No business created -> Go to settings
+  if (!business) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
         <AlertCircle className="h-12 w-12 text-warning" />
         <h1 className="text-2xl font-bold">Start your business</h1>
         <p className="text-muted-foreground max-w-md">
-          {business ? 'You need to complete your subscription payment to unlock your dashboard.' : 'Set up your business profile and subscribe to start receiving appointments.'}
+          Set up your business profile to get started.
         </p>
         <Link href="/dashboard/business/settings" className={cn(buttonVariants({ size: 'lg' }))}>
-          {business ? 'Complete Payment' : 'Go to Business Settings'}
+          Go to Business Settings
         </Link>
       </div>
     )
   }
 
-  if (business.status !== 'verified') {
+  // 2. Lock logic: Waiting for admin approval
+  if (business.status === 'pending') {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
         <Clock className="h-12 w-12 text-primary" />
-        <h1 className="text-2xl font-bold">Waiting confirm or approval</h1>
+        <h1 className="text-2xl font-bold">Waiting for Approval</h1>
         <p className="text-muted-foreground max-w-md">
-          Your payment was successful! Our admin team is currently reviewing your business details. Your dashboard will be unlocked shortly.
+          Your business information has been submitted. Please wait for an admin to confirm or approve your application before you can subscribe.
+        </p>
+      </div>
+    )
+  }
+
+  // 3. Lock logic: Approved but not paid
+  if (business.status === 'verified' && business.payment_status !== 'paid') {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+        <AlertCircle className="h-12 w-12 text-warning" />
+        <h1 className="text-2xl font-bold">Pay the subscription</h1>
+        <p className="text-muted-foreground max-w-md">
+          Your business has been approved! Complete your subscription payment to unlock your dashboard and go live.
+        </p>
+        <Link href="/dashboard/business/subscription" className={cn(buttonVariants({ size: 'lg' }))}>
+          Pay Subscription
+        </Link>
+      </div>
+    )
+  }
+
+  // Fallback if rejected or other invalid state
+  if (business.payment_status !== 'paid' || business.status !== 'verified') {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+        <AlertCircle className="h-12 w-12 text-destructive" />
+        <h1 className="text-2xl font-bold">Access Denied</h1>
+        <p className="text-muted-foreground max-w-md">
+          You do not have access to the business dashboard. Your account may have been rejected or suspended.
         </p>
       </div>
     )
