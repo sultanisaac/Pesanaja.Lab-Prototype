@@ -20,6 +20,7 @@ export default async function AdminBusinessesPage() {
       name,
       description,
       status,
+      payment_status,
       contact_email,
       contact_phone,
       is_active,

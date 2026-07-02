@@ -72,7 +72,7 @@ export default async function SubscriptionPage() {
 
   const { data: business } = await supabase
     .from('businesses')
-    .select('id, name, status')
+    .select('id, name, status, payment_status')
     .eq('owner_id', user?.id)
     .single()
 
@@ -155,7 +155,18 @@ export default async function SubscriptionPage() {
                 </ul>
                 <div className="pt-2">
                   {plan.cta === 'Upgrade to Pro' ? (
-                    <CheckoutButton businessId={business?.id} />
+                    business?.status === 'pending' ? (
+                      <div className="flex flex-col items-center justify-center w-full py-2 px-3 text-center border border-warning/50 bg-warning/10 rounded-lg text-xs font-medium text-warning">
+                        <Shield className="h-4 w-4 mb-1" />
+                        You need your business to be confirmed or approved by an admin first to be able to pay.
+                      </div>
+                    ) : business?.payment_status === 'paid' && isCurrent ? (
+                      <div className="flex items-center justify-center w-full py-2 rounded-lg text-sm font-medium text-muted-foreground bg-muted/40">
+                        Subscription Active
+                      </div>
+                    ) : (
+                      <CheckoutButton businessId={business?.id} />
+                    )
                   ) : plan.cta === 'Contact Sales' ? (
                     <a
                       href="mailto:hello@pesanaja.lab"

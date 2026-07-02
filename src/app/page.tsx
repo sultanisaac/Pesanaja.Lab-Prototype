@@ -29,6 +29,7 @@ export default async function Home() {
     .select('*, services(*), addresses(*)')
     .eq('is_active', true)
     .eq('status', 'verified')
+    .eq('payment_status', 'paid')
     .limit(3);
 
   const trendingBusinesses = results || [];
