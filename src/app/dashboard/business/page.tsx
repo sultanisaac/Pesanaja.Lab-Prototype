@@ -275,7 +275,7 @@ export default async function BusinessDashboard() {
                   <span>Customer reviews</span>
                 </div>
               </div>
-              <CheckoutButton />
+              <CheckoutButton businessId={business?.id} />
             </div>
             <Link href="/dashboard/business/subscription" className="block text-center text-xs text-primary hover:underline">
               Compare all plans →

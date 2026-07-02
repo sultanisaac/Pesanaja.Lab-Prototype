@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
 
-export function CheckoutButton() {
+export function CheckoutButton({ businessId }: { businessId?: string }) {
   const [loading, setLoading] = useState(false)
 
   const handleCheckout = async () => {
@@ -12,6 +12,8 @@ export function CheckoutButton() {
       setLoading(true)
       const res = await fetch('/api/checkout', {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ businessId }),
       })
       const data = await res.json()
       

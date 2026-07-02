@@ -1,10 +1,6 @@
 import { NextResponse } from 'next/server'
-import { Xendit } from 'xendit-node'
 import { createClient } from '@/lib/supabase/server'
-
-const xendit = new Xendit({
-  secretKey: process.env.XENDIT_SECRET_KEY || 'xnd_development_placeholder',
-})
+import { createSubscriptionInvoice } from '@/lib/xendit'
 
 export async function POST(req: Request) {
   try {
@@ -24,17 +20,7 @@ export async function POST(req: Request) {
 
     const externalId = businessId ? `business_id:${businessId}` : `upgrade_id:${upgradeId}`
 
-    const invoice = await xendit.Invoice.createInvoice({
-      data: {
-        externalId: externalId,
-        amount: 150000, // Rp 150.000
-        payerEmail: user.email,
-        description: 'Subscription to Pesanaja.Lab',
-        successRedirectUrl: `https://pesanajalab-prototype.vercel.app/dashboard/business`,
-        failureRedirectUrl: `https://pesanajalab-prototype.vercel.app/dashboard/business?canceled=true`,
-        currency: 'IDR'
-      }
-    })
+    const invoice = await createSubscriptionInvoice(externalId, user.email || '')
     
     return NextResponse.json({ url: invoice.invoiceUrl })
   } catch (error) {

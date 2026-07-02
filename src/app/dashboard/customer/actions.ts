@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { createSubscriptionInvoice } from '@/lib/xendit'
 
 export async function submitUpgradeRequest(formData: FormData): Promise<void> {
   const supabase = await createClient()
@@ -49,6 +50,7 @@ export async function submitUpgradeRequest(formData: FormData): Promise<void> {
       description,
       contact_email,
       contact_phone,
+      payment_status: 'unpaid'
     })
     .select('id')
     .single()
@@ -59,15 +61,9 @@ export async function submitUpgradeRequest(formData: FormData): Promise<void> {
 
   // Redirect to Xendit checkout
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://pesanajalab-prototype.vercel.app'
-    const res = await fetch(`${baseUrl}/api/checkout`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ upgradeId: newRequest.id }),
-    })
-    const data = await res.json()
-    if (data.url) {
-      redirect(data.url)
+    const invoice = await createSubscriptionInvoice(`upgrade_id:${newRequest.id}`, user.email || '')
+    if (invoice.invoiceUrl) {
+      redirect(invoice.invoiceUrl)
     }
   } catch (e) {
     console.error('Checkout error:', e)

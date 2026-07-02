@@ -155,7 +155,7 @@ export default async function SubscriptionPage() {
                 </ul>
                 <div className="pt-2">
                   {plan.cta === 'Upgrade to Pro' ? (
-                    <CheckoutButton />
+                    <CheckoutButton businessId={business?.id} />
                   ) : plan.cta === 'Contact Sales' ? (
                     <a
                       href="mailto:hello@pesanaja.lab"
