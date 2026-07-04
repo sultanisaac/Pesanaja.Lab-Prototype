@@ -3,7 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-// Using regular client since RLS is configured appropriately
+import { sendEmail } from '@/lib/email'
+import { getAdminVerificationRequestEmailHtml } from '@/lib/emailTemplates'
 
 export async function updateBusinessProfile(formData: FormData): Promise<void> {
   const supabase = await createClient()
@@ -43,10 +44,17 @@ export async function updateBusinessProfile(formData: FormData): Promise<void> {
       .from('businesses')
       .insert({ owner_id: user.id, name, description, contact_email, contact_phone, operating_hours, payment_status: 'unpaid', status: 'pending' })
 
+    // Fetch user profile for email
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('first_name, last_name')
+      .eq('id', user.id)
+      .single()
+
     // Notify all admins about the new business verification request
     const { data: admins } = await supabase
       .from('profiles')
-      .select('id')
+      .select('id, first_name, last_name, email')
       .eq('role', 'admin')
 
     if (admins && admins.length > 0) {
@@ -64,6 +72,22 @@ export async function updateBusinessProfile(formData: FormData): Promise<void> {
       }))
       
       await adminAuth.from('notifications').insert(notifications)
+
+      // Send emails
+      const userName = profile?.first_name ? `${profile.first_name} ${profile.last_name || ''}`.trim() : user.email?.split('@')[0] || 'User'
+      const userEmailAddress = user.email || ''
+
+      for (const admin of admins) {
+        if (admin.email) {
+          const adminName = admin.first_name ? `${admin.first_name} ${admin.last_name || ''}`.trim() : admin.email.split('@')[0]
+          const html = getAdminVerificationRequestEmailHtml(adminName, userName, name, userEmailAddress)
+          await sendEmail({
+            to: admin.email,
+            subject: `Action Required: New Business Verification for ${name}`,
+            html
+          })
+        }
+      }
     }
   }
 

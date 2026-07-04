@@ -3,7 +3,8 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-
+import { sendEmail } from '@/lib/email'
+import { getBusinessApprovedEmailHtml } from '@/lib/emailTemplates'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 
 function getAdminClient() {
@@ -59,6 +60,27 @@ export async function updateBusinessStatus(formData: FormData): Promise<void> {
         message: `Your business ${business.name} has been verified and approved! You can start your payment to continue your business.`,
         link: '/dashboard/business/subscription'
       })
+
+      // Fetch user email and name for the email
+      const { data: userResponse } = await adminAuth.auth.admin.getUserById(business.owner_id)
+      const userEmail = userResponse?.user?.email
+
+      const { data: profile } = await adminAuth
+        .from('profiles')
+        .select('first_name, last_name')
+        .eq('id', business.owner_id)
+        .single()
+
+      const userName = profile?.first_name ? `${profile.first_name} ${profile.last_name || ''}`.trim() : userEmail?.split('@')[0] || 'User'
+
+      if (userEmail) {
+        const html = getBusinessApprovedEmailHtml(userName, business.name)
+        await sendEmail({
+          to: userEmail,
+          subject: `🎉 Your Business ${business.name} is Approved!`,
+          html
+        })
+      }
     }
   }
 

@@ -3,6 +3,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { sendEmail } from '@/lib/email'
+import { getAdminVerificationRequestEmailHtml } from '@/lib/emailTemplates'
+
 export async function submitUpgradeRequest(formData: FormData): Promise<void> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -11,7 +14,7 @@ export async function submitUpgradeRequest(formData: FormData): Promise<void> {
   // Verify the user is actually a customer
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('role, first_name, last_name')
     .eq('id', user.id)
     .single()
 
@@ -58,7 +61,7 @@ export async function submitUpgradeRequest(formData: FormData): Promise<void> {
   // Notify all admins about the new business verification request
   const { data: admins } = await supabase
     .from('profiles')
-    .select('id')
+    .select('id, first_name, last_name, email')
     .eq('role', 'admin')
 
   if (admins && admins.length > 0) {
@@ -76,6 +79,22 @@ export async function submitUpgradeRequest(formData: FormData): Promise<void> {
     }))
     
     await adminAuth.from('notifications').insert(notifications)
+
+    // Send emails
+    const userName = profile?.first_name ? `${profile.first_name} ${profile.last_name || ''}`.trim() : user.email?.split('@')[0] || 'User'
+    const userEmailAddress = user.email || ''
+
+    for (const admin of admins) {
+      if (admin.email) {
+        const adminName = admin.first_name ? `${admin.first_name} ${admin.last_name || ''}`.trim() : admin.email.split('@')[0]
+        const html = getAdminVerificationRequestEmailHtml(adminName, userName, business_name, userEmailAddress)
+        await sendEmail({
+          to: admin.email,
+          subject: `Action Required: New Business Verification for ${business_name}`,
+          html
+        })
+      }
+    }
   }
 
   revalidatePath('/dashboard/customer')
