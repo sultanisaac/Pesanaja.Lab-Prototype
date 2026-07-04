@@ -78,11 +78,21 @@ export async function createBooking(formData: FormData) {
     .eq('id', businessId)
     .single()
 
+  const { data: customerProfile } = await supabase
+    .from('profiles')
+    .select('first_name, last_name')
+    .eq('id', user.id)
+    .single()
+  
+  const customerName = customerProfile?.first_name 
+    ? `${customerProfile.first_name} ${customerProfile.last_name || ''}`.trim() 
+    : user.email?.split('@')[0] || 'User'
+
   if (business?.owner_id) {
     await supabase.from('notifications').insert({
       user_id: business.owner_id,
       title: 'New Appointment Request',
-      message: `A customer has requested a new appointment for ${service.name || 'a service'} at your business.`,
+      message: `New appointment booked by ${customerName} for ${service.name || 'a service'} at ${time}.`,
       link: '/dashboard/business/appointments',
     })
   }

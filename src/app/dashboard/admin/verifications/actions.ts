@@ -45,6 +45,23 @@ export async function updateBusinessStatus(formData: FormData): Promise<void> {
     redirect(`/dashboard/admin/verifications?error=${encodeURIComponent(error.message)}`)
   }
 
+  if (status === 'verified') {
+    const { data: business } = await adminAuth
+      .from('businesses')
+      .select('owner_id, name')
+      .eq('id', businessId)
+      .single()
+
+    if (business && business.owner_id) {
+      await adminAuth.from('notifications').insert({
+        user_id: business.owner_id,
+        title: 'Verification Approved',
+        message: `Your business ${business.name} has been verified and approved! You can start your payment to continue your business.`,
+        link: '/dashboard/business/subscription'
+      })
+    }
+  }
+
   revalidatePath('/dashboard/admin/verifications')
   revalidatePath('/dashboard/admin')
   redirect('/dashboard/admin/verifications?success=updated')
