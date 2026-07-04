@@ -59,7 +59,7 @@ export async function updateBusinessProfile(formData: FormData): Promise<void> {
       const notifications = admins.map((admin) => ({
         user_id: admin.id,
         title: 'New Business Verification Request',
-        message: `${name} has requested to be verified as a business.`,
+        message: `New business verification request from ${user.email?.split('@')[0] || 'User'} for ${name}.`,
         link: '/dashboard/admin/verifications',
       }))
       

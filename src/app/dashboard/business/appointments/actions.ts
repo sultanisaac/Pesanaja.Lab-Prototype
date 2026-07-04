@@ -21,7 +21,7 @@ export async function updateBookingStatus(bookingId: string, status: 'pending' |
   // Get booking details first to know who to notify
   const { data: bookingDetails } = await supabase
     .from('bookings')
-    .select('customer_id, services(name)')
+    .select('customer_id, scheduled_at, services(name), businesses(name)')
     .eq('id', bookingId)
     .single()
 
@@ -38,10 +38,22 @@ export async function updateBookingStatus(bookingId: string, status: 'pending' |
   if (bookingDetails?.customer_id && (status === 'confirmed' || status === 'cancelled')) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const serviceName = (bookingDetails.services as any)?.name || 'a service'
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const businessName = (bookingDetails.businesses as any)?.name || 'the business'
+    
+    const appointmentTime = bookingDetails.scheduled_at 
+      ? new Date(bookingDetails.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+      : 'the scheduled time'
+
+    let message = `Your appointment for ${serviceName} has been ${status}.`
+    if (status === 'confirmed') {
+      message = `Your appointment at ${businessName} has been confirmed for ${appointmentTime}.`
+    }
+
     await supabase.from('notifications').insert({
       user_id: bookingDetails.customer_id,
       title: `Appointment ${status === 'confirmed' ? 'Confirmed' : 'Cancelled'}`,
-      message: `Your appointment for ${serviceName} has been ${status}.`,
+      message,
       link: '/dashboard/customer/bookings',
     })
   }
