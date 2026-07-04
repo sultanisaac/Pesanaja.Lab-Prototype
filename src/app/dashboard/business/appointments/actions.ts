@@ -2,6 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { sendEmail } from '@/lib/email'
+import { getAppointmentConfirmedEmailHtml } from '@/lib/emailTemplates'
 
 export async function updateBookingStatus(bookingId: string, status: 'pending' | 'confirmed' | 'completed' | 'cancelled') {
   const supabase = await createClient()
@@ -56,6 +58,41 @@ export async function updateBookingStatus(bookingId: string, status: 'pending' |
       message,
       link: '/dashboard/customer/bookings',
     })
+
+    if (status === 'confirmed') {
+      const { createClient: createSupabaseClient } = await import('@supabase/supabase-js')
+      const adminAuth = createSupabaseClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      )
+
+      const { data: customerResponse } = await adminAuth.auth.admin.getUserById(bookingDetails.customer_id)
+      const customerEmail = customerResponse?.user?.email
+
+      const { data: customerProfile } = await adminAuth
+        .from('profiles')
+        .select('first_name, last_name')
+        .eq('id', bookingDetails.customer_id)
+        .single()
+      
+      const customerFullName = customerProfile?.first_name
+        ? `${customerProfile.first_name} ${customerProfile.last_name || ''}`.trim()
+        : customerEmail?.split('@')[0] || 'Customer'
+
+      if (customerEmail) {
+        const appointmentDateStr = bookingDetails.scheduled_at
+          ? new Date(bookingDetails.scheduled_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
+          : appointmentTime
+
+        const html = getAppointmentConfirmedEmailHtml(customerFullName, businessName, serviceName, appointmentDateStr)
+        
+        await sendEmail({
+          to: customerEmail,
+          subject: `✅ Appointment Confirmed: Your booking at ${businessName}`,
+          html
+        })
+      }
+    }
   }
 
   revalidatePath('/dashboard/business/appointments')
