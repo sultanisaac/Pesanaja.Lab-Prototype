@@ -2,6 +2,8 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { sendEmail } from '@/lib/email'
+import { getNewBookingEmailHtml } from '@/lib/emailTemplates'
 
 export async function createBooking(formData: FormData) {
   const supabase = await createClient()
@@ -89,12 +91,44 @@ export async function createBooking(formData: FormData) {
     : user.email?.split('@')[0] || 'User'
 
   if (business?.owner_id) {
-    await supabase.from('notifications').insert({
+    // We use the admin client to insert notifications and fetch user emails to bypass RLS
+    const { createClient: createSupabaseClient } = await import('@supabase/supabase-js')
+    const adminAuth = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    await adminAuth.from('notifications').insert({
       user_id: business.owner_id,
       title: 'New Appointment Request',
       message: `New appointment booked by ${customerName} for ${service.name || 'a service'} at ${time}.`,
       link: '/dashboard/business/appointments',
     })
+
+    // Fetch business owner's email and name
+    const { data: ownerResponse } = await adminAuth.auth.admin.getUserById(business.owner_id)
+    const ownerEmail = ownerResponse?.user?.email
+
+    const { data: ownerProfile } = await adminAuth
+      .from('profiles')
+      .select('first_name, last_name')
+      .eq('id', business.owner_id)
+      .single()
+
+    const ownerName = ownerProfile?.first_name 
+      ? `${ownerProfile.first_name} ${ownerProfile.last_name || ''}`.trim() 
+      : ownerEmail?.split('@')[0] || 'Business Owner'
+
+    if (ownerEmail) {
+      const appointmentDateStr = new Date(scheduledAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
+      const html = getNewBookingEmailHtml(ownerName, customerName, service.name || 'Service', appointmentDateStr)
+      
+      await sendEmail({
+        to: ownerEmail,
+        subject: `📅 New Booking: ${customerName} has booked an appointment`,
+        html
+      })
+    }
   }
 
   revalidatePath('/dashboard/customer/bookings')
