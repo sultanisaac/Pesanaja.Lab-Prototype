@@ -69,6 +69,7 @@ export async function updateBusinessProfile(formData: FormData): Promise<void> {
         title: 'New Business Verification Request',
         message: `New business verification request from ${user.email?.split('@')[0] || 'User'} for ${name}.`,
         link: '/dashboard/admin/verifications',
+        type: 'verification_request',
       }))
       
       await adminAuth.from('notifications').insert(notifications)

@@ -103,6 +103,7 @@ export async function createBooking(formData: FormData) {
       title: 'New Appointment Request',
       message: `New appointment booked by ${customerName} for ${service.name || 'a service'} at ${time}.`,
       link: '/dashboard/business/appointments',
+      type: 'booking_request',
     })
 
     // Fetch business owner's email and name

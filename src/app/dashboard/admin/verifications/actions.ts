@@ -58,7 +58,8 @@ export async function updateBusinessStatus(formData: FormData): Promise<void> {
         user_id: business.owner_id,
         title: 'Verification Approved',
         message: `Your business ${business.name} has been verified and approved! You can start your payment to continue your business.`,
-        link: '/dashboard/business/subscription'
+        link: '/dashboard/business/subscription',
+        type: 'business_verified'
       })
 
       // Fetch user email and name for the email

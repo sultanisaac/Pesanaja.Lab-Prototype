@@ -40,12 +40,19 @@ export function AppointmentsClient({
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
   const router = useRouter()
 
+  const [decliningId, setDecliningId] = useState<string | null>(null)
+  const [declineReason, setDeclineReason] = useState('')
+
   const filteredBookings = initialBookings.filter(b => filter === 'all' || b.status === filter)
 
-  const handleStatusUpdate = async (id: string, status: 'pending' | 'confirmed' | 'completed' | 'cancelled') => {
+  const handleStatusUpdate = async (id: string, status: 'pending' | 'confirmed' | 'completed' | 'cancelled', reason?: string) => {
     setLoadingId(id)
-    await updateBookingStatus(id, status)
+    await updateBookingStatus(id, status, reason)
     setLoadingId(null)
+    if (status === 'cancelled') {
+      setDecliningId(null)
+      setDeclineReason('')
+    }
     router.refresh()
   }
 
@@ -177,11 +184,39 @@ export function AppointmentsClient({
                 </CardContent>
 
                 {/* Right Side: Actions */}
-                <div className="p-4 bg-muted/10 border-t sm:border-t-0 sm:border-l border-border flex flex-row sm:flex-col flex-wrap sm:flex-nowrap items-center justify-center gap-2 sm:w-40 shrink-0">
+                <div className="p-4 bg-muted/10 border-t sm:border-t-0 sm:border-l border-border flex flex-col flex-wrap sm:flex-nowrap items-center justify-center gap-2 sm:w-48 shrink-0">
                   {loadingId === booking.id ? (
                     <Loader2 className="h-5 w-5 text-primary animate-spin mx-auto" />
+                  ) : decliningId === booking.id ? (
+                    <div className="flex flex-col gap-2 w-full animate-in fade-in zoom-in-95 duration-200">
+                      <textarea
+                        autoFocus
+                        placeholder="Reason for declining..."
+                        className="w-full text-xs rounded-md border border-border p-2 focus:outline-none focus:ring-1 focus:ring-primary/50 resize-none bg-background text-foreground"
+                        rows={2}
+                        value={declineReason}
+                        onChange={(e) => setDeclineReason(e.target.value)}
+                      />
+                      <div className="flex gap-1 w-full">
+                        <button
+                          onClick={() => {
+                            setDecliningId(null)
+                            setDeclineReason('')
+                          }}
+                          className="flex-1 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted border border-border rounded transition-colors"
+                        >
+                          Back
+                        </button>
+                        <button
+                          onClick={() => handleStatusUpdate(booking.id, 'cancelled', declineReason)}
+                          className="flex-1 py-1.5 text-xs font-semibold bg-destructive text-white hover:bg-destructive/90 rounded transition-colors"
+                        >
+                          Submit
+                        </button>
+                      </div>
+                    </div>
                   ) : (
-                    <>
+                    <div className="flex flex-row sm:flex-col gap-2 w-full">
                       {booking.status === 'pending' && (
                         <>
                           <button 
@@ -191,7 +226,10 @@ export function AppointmentsClient({
                             Confirm
                           </button>
                           <button 
-                            onClick={() => handleStatusUpdate(booking.id, 'cancelled')}
+                            onClick={() => {
+                              setDecliningId(booking.id)
+                              setDeclineReason('')
+                            }}
                             className="flex-1 sm:w-full px-3 py-1.5 bg-destructive/10 text-destructive text-xs font-semibold rounded-md hover:bg-destructive/20 transition-colors"
                           >
                             Decline
@@ -208,7 +246,10 @@ export function AppointmentsClient({
                             Mark Completed
                           </button>
                           <button 
-                            onClick={() => handleStatusUpdate(booking.id, 'cancelled')}
+                            onClick={() => {
+                              setDecliningId(booking.id)
+                              setDeclineReason('')
+                            }}
                             className="flex-1 sm:w-full px-3 py-1.5 bg-transparent border border-border text-muted-foreground hover:text-foreground text-xs font-semibold rounded-md hover:bg-muted transition-colors"
                           >
                             Cancel
@@ -217,11 +258,11 @@ export function AppointmentsClient({
                       )}
 
                       {(booking.status === 'completed' || booking.status === 'cancelled') && (
-                        <span className="text-xs text-muted-foreground font-medium">
+                        <span className="text-xs text-muted-foreground font-medium text-center w-full block">
                           No actions available
                         </span>
                       )}
-                    </>
+                    </div>
                   )}
                 </div>
               </Card>
