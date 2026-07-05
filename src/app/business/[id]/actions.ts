@@ -5,6 +5,40 @@ import { revalidatePath } from 'next/cache'
 import { sendEmail } from '@/lib/email'
 import { getNewBookingEmailHtml } from '@/lib/emailTemplates'
 
+export async function getBookedSlots(businessId: string, dateStr: string) {
+  const supabase = await createClient()
+  
+  // Date boundaries for the query
+  const startDate = new Date(`${dateStr}T00:00:00`).toISOString()
+  const endDate = new Date(`${dateStr}T23:59:59`).toISOString()
+
+  // Fetch confirmed bookings for this date
+  const { data: bookings } = await supabase
+    .from('bookings')
+    .select(`
+      scheduled_at,
+      services:service_id(duration_minutes)
+    `)
+    .eq('business_id', businessId)
+    .eq('status', 'confirmed')
+    .gte('scheduled_at', startDate)
+    .lte('scheduled_at', endDate)
+
+  if (!bookings) return []
+
+  return bookings.map(b => {
+    const d = new Date(b.scheduled_at)
+    const hh = d.getHours().toString().padStart(2, '0')
+    const mm = d.getMinutes().toString().padStart(2, '0')
+    // @ts-expect-error: Suppress type error until supabase types are regenerated
+    const duration = b.services?.duration_minutes || 30
+    return {
+      time: `${hh}:${mm}`,
+      duration_minutes: duration
+    }
+  })
+}
+
 export async function createBooking(formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

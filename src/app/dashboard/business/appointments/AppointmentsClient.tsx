@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Calendar as CalendarIcon, Clock, XCircle, User, Phone, Plus, Loader2 } from 'lucide-react'
+import { Calendar as CalendarIcon, Clock, XCircle, User, Phone, Plus, Loader2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { updateBookingStatus, createManualBooking } from './actions'
@@ -33,6 +33,9 @@ export function AppointmentsClient({
   services: Service[]
 }) {
   const [filter, setFilter] = useState<'all' | 'pending' | 'confirmed' | 'completed' | 'cancelled'>('all')
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [currentMonth, setCurrentMonth] = useState(new Date())
+
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [modalLoading, setModalLoading] = useState(false)
@@ -43,7 +46,33 @@ export function AppointmentsClient({
   const [decliningId, setDecliningId] = useState<string | null>(null)
   const [declineReason, setDeclineReason] = useState('')
 
-  const filteredBookings = initialBookings.filter(b => filter === 'all' || b.status === filter)
+  // Calendar logic
+  const daysInMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate()
+  const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1).getDay() // 0 = Sunday
+  
+  const blanks = Array.from({ length: firstDayOfMonth }, (_, i) => i)
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1)
+
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+
+  const nextMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))
+  const prevMonth = () => setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))
+
+  // Map bookings by date for calendar dots
+  const bookingsByDate = initialBookings.reduce((acc, booking) => {
+    const dateStr = booking.scheduled_at.split('T')[0]
+    if (!acc[dateStr]) acc[dateStr] = { total: 0, pending: 0, confirmed: 0 }
+    acc[dateStr].total++
+    if (booking.status === 'pending') acc[dateStr].pending++
+    if (booking.status === 'confirmed') acc[dateStr].confirmed++
+    return acc
+  }, {} as Record<string, { total: number, pending: number, confirmed: number }>)
+
+  const filteredBookings = initialBookings.filter(b => {
+    const matchesFilter = filter === 'all' || b.status === filter
+    const matchesDate = selectedDate ? b.scheduled_at.startsWith(selectedDate) : true
+    return matchesFilter && matchesDate
+  })
 
   const handleStatusUpdate = async (id: string, status: 'pending' | 'confirmed' | 'completed' | 'cancelled', reason?: string) => {
     setLoadingId(id)
@@ -98,14 +127,105 @@ export function AppointmentsClient({
         
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors shrink-0"
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors shrink-0 ml-auto"
         >
           <Plus className="h-4 w-4" /> New Appointment
         </button>
       </div>
 
-      {/* Bookings List */}
-      {!filteredBookings.length ? (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left: Calendar View */}
+        <div className="lg:col-span-1">
+          <Card className="shadow-sm sticky top-4">
+            <CardHeader className="pb-4 border-b border-border">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
+                  <CalendarIcon className="h-4 w-4 text-primary" /> Calendar
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <button onClick={prevMonth} className="p-1 hover:bg-muted rounded text-muted-foreground"><ChevronLeft className="h-4 w-4" /></button>
+                  <div className="flex items-center gap-1">
+                    <select
+                      value={currentMonth.getMonth()}
+                      onChange={(e) => setCurrentMonth(new Date(currentMonth.getFullYear(), parseInt(e.target.value), 1))}
+                      className="bg-transparent text-sm font-medium outline-none cursor-pointer hover:bg-muted p-1 rounded text-foreground appearance-none"
+                    >
+                      {monthNames.map((m, i) => (
+                        <option key={m} value={i} className="text-foreground">{m}</option>
+                      ))}
+                    </select>
+                    <select
+                      value={currentMonth.getFullYear()}
+                      onChange={(e) => setCurrentMonth(new Date(parseInt(e.target.value), currentMonth.getMonth(), 1))}
+                      className="bg-transparent text-sm font-medium outline-none cursor-pointer hover:bg-muted p-1 rounded text-foreground appearance-none"
+                    >
+                      {Array.from({length: 15}, (_, i) => new Date().getFullYear() - 5 + i).map(y => (
+                        <option key={y} value={y} className="text-foreground">{y}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <button onClick={nextMonth} className="p-1 hover:bg-muted rounded text-muted-foreground"><ChevronRight className="h-4 w-4" /></button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-4">
+              <div className="grid grid-cols-7 gap-1 text-center mb-2">
+                {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(d => (
+                  <div key={d} className="text-xs font-medium text-muted-foreground">{d}</div>
+                ))}
+              </div>
+              <div className="grid grid-cols-7 gap-1 text-center">
+                {blanks.map(b => <div key={`blank-${b}`} className="h-10"></div>)}
+                {days.map(day => {
+                  const dateStr = `${currentMonth.getFullYear()}-${String(currentMonth.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+                  const hasBookings = bookingsByDate[dateStr]
+                  const isSelected = selectedDate === dateStr
+                  const isToday = new Date().toISOString().split('T')[0] === dateStr
+
+                  return (
+                    <button
+                      key={day}
+                      onClick={() => setSelectedDate(isSelected ? null : dateStr)}
+                      className={cn(
+                        "h-10 w-full rounded-md flex flex-col items-center justify-center relative hover:bg-muted transition-colors",
+                        isSelected ? "bg-primary text-white hover:bg-primary" : "text-foreground",
+                        isToday && !isSelected ? "border border-primary/50 text-primary font-bold" : ""
+                      )}
+                    >
+                      <span className="text-sm">{day}</span>
+                      {hasBookings && (
+                        <div className="flex gap-0.5 mt-0.5">
+                          {hasBookings.pending > 0 && <span className="w-1.5 h-1.5 rounded-full bg-warning"></span>}
+                          {hasBookings.confirmed > 0 && <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>}
+                        </div>
+                      )}
+                    </button>
+                  )
+                })}
+              </div>
+              
+              <div className="mt-4 pt-4 border-t border-border flex flex-wrap gap-3 text-xs text-muted-foreground justify-center">
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-warning"></span> Pending</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-primary"></span> Confirmed</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right: Bookings List */}
+        <div className="lg:col-span-2 space-y-4">
+          {selectedDate && (
+            <div className="flex justify-between items-center bg-muted/30 px-4 py-2 rounded-lg border border-border">
+              <span className="text-sm font-medium text-foreground">
+                Showing appointments for: <span className="font-bold text-primary">{new Date(selectedDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span>
+              </span>
+              <button onClick={() => setSelectedDate(null)} className="text-muted-foreground hover:text-foreground text-sm flex items-center gap-1">
+                <XCircle className="h-4 w-4" /> Clear Filter
+              </button>
+            </div>
+          )}
+
+          {!filteredBookings.length ? (
         <Card className="shadow-sm">
           <CardContent className="flex flex-col items-center gap-4 py-16 text-center">
             <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center">
@@ -270,6 +390,8 @@ export function AppointmentsClient({
           })}
         </div>
       )}
+        </div>
+      </div>
 
       {/* Manual Booking Modal Overlay */}
       {showModal && (

@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Clock, Star, MapPin, Heart, ArrowLeft, Loader2, Info, Mail, Phone } from 'lucide-react'
-import { createBooking, toggleFavorite } from './actions'
+import { createBooking, toggleFavorite, getBookedSlots } from './actions'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
@@ -33,7 +33,15 @@ type BusinessStorefrontProps = {
     logo_url: string | null
     contact_phone: string | null
     contact_email: string | null
-    operating_hours?: Record<string, { isOpen: boolean; openTime: string; closeTime: string }>
+    operating_hours?: Record<string, { 
+      isOpen: boolean; 
+      openTime?: string; 
+      closeTime?: string; 
+      hasBreak?: boolean; 
+      openTime2?: string; 
+      closeTime2?: string;
+      slots?: { openTime: string; closeTime: string }[] 
+    }>
   }
   services: Service[]
   reviews: Review[]
@@ -51,9 +59,26 @@ export function BusinessStorefront({ business, services, reviews, addresses, isF
   const [selectedService, setSelectedService] = useState<Service | null>(null)
   const [selectedDate, setSelectedDate] = useState<string>('')
   const [selectedTime, setSelectedTime] = useState<string>('')
+  const [bookedSlots, setBookedSlots] = useState<{time: string, duration_minutes: number}[]>([])
   const [bookingLoading, setBookingLoading] = useState(false)
   const [bookingError, setBookingError] = useState<string | null>(null)
   const [bookingSuccess, setBookingSuccess] = useState(false)
+
+  useEffect(() => {
+    async function fetchBookedSlots() {
+      if (selectedDate && business.id) {
+        try {
+          const slots = await getBookedSlots(business.id, selectedDate)
+          setBookedSlots(slots)
+        } catch (error) {
+          console.error('Failed to fetch booked slots', error)
+        }
+      } else {
+        setBookedSlots([])
+      }
+    }
+    fetchBookedSlots()
+  }, [selectedDate, business.id])
 
   // Generate available time slots based on operating hours
   const generateTimeSlots = () => {
@@ -67,28 +92,50 @@ export function BusinessStorefront({ business, services, reviews, addresses, isF
     
     if (!dayConfig || !dayConfig.isOpen) return []
 
-    const slots = []
+    const slots: string[] = []
     
     // Duration step (e.g., if service is 30 mins, step is 30. If 60, step is 60. Default 30 if null)
     const stepMins = selectedService?.duration_minutes || 30
     
-    const current = new Date(`${selectedDate}T${dayConfig.openTime}:00`)
-    const endTime = new Date(`${selectedDate}T${dayConfig.closeTime}:00`)
     const now = new Date()
 
-    while (current < endTime) {
-      // Ensure the slot + duration doesn't exceed closeTime
-      const slotEnd = new Date(current.getTime() + stepMins * 60000)
-      if (slotEnd > endTime) break
+    const generateSlotsForShift = (startStr: string, endStr: string) => {
+      const current = new Date(`${selectedDate}T${startStr}:00`)
+      const endTime = new Date(`${selectedDate}T${endStr}:00`)
 
-      // Only add slot if it's in the future
-      if (current > now) {
-        const hh = current.getHours().toString().padStart(2, '0');
-        const mm = current.getMinutes().toString().padStart(2, '0');
-        slots.push(`${hh}:${mm}`);
+      while (current < endTime) {
+        // Ensure the slot + duration doesn't exceed closeTime
+        const slotEnd = new Date(current.getTime() + stepMins * 60000)
+        if (slotEnd > endTime) break
+
+        // Only add slot if it's in the future and doesn't overlap with confirmed bookings
+        if (current > now) {
+          const isOverlapping = bookedSlots.some(booked => {
+            const bookedStart = new Date(`${selectedDate}T${booked.time}:00`)
+            const bookedEnd = new Date(bookedStart.getTime() + booked.duration_minutes * 60000)
+            // Strict overlap check (current slot must not overlap at all with booked slot)
+            return (current < bookedEnd && slotEnd > bookedStart)
+          })
+
+          if (!isOverlapping) {
+            const hh = current.getHours().toString().padStart(2, '0');
+            const mm = current.getMinutes().toString().padStart(2, '0');
+            slots.push(`${hh}:${mm}`);
+          }
+        }
+        current.setMinutes(current.getMinutes() + stepMins)
       }
-      current.setMinutes(current.getMinutes() + stepMins)
     }
+
+    if (dayConfig.slots && dayConfig.slots.length > 0) {
+      dayConfig.slots.forEach(slot => generateSlotsForShift(slot.openTime, slot.closeTime))
+    } else if (dayConfig.openTime && dayConfig.closeTime) {
+      generateSlotsForShift(dayConfig.openTime, dayConfig.closeTime)
+      if (dayConfig.hasBreak && dayConfig.openTime2 && dayConfig.closeTime2) {
+        generateSlotsForShift(dayConfig.openTime2, dayConfig.closeTime2)
+      }
+    }
+
     return slots
   }
 
@@ -351,8 +398,16 @@ export function BusinessStorefront({ business, services, reviews, addresses, isF
                         return (
                           <div key={day} className="flex justify-between text-sm">
                             <span className="capitalize text-muted-foreground">{day.slice(0,3)}</span>
-                            <span className={config.isOpen ? "text-foreground font-medium" : "text-muted-foreground italic"}>
-                              {config.isOpen ? `${config.openTime} - ${config.closeTime}` : 'Closed'}
+                            <span className={config.isOpen ? "text-foreground font-medium" : "text-muted-foreground italic text-right"}>
+                              {config.isOpen 
+                                ? (config.slots && config.slots.length > 0
+                                    ? <span className="text-right block">
+                                        {config.slots.map((s, i) => <span key={i} className="block">{s.openTime} - {s.closeTime}</span>)}
+                                      </span>
+                                    : (config.hasBreak && config.openTime2 && config.closeTime2 
+                                        ? <span className="text-right block">{config.openTime} - {config.closeTime}<br/>{config.openTime2} - {config.closeTime2}</span>
+                                        : `${config.openTime} - ${config.closeTime}`)) 
+                                : 'Closed'}
                             </span>
                           </div>
                         )
