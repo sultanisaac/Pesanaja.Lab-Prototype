@@ -258,9 +258,9 @@ export default async function Home() {
               <h3 className="mb-8 font-heading text-2xl font-bold text-foreground">For Customers</h3>
               <div className="space-y-8">
                 {[
-                  { title: "Search", desc: "Find services near you easily.", step: "1" },
-                  { title: "Compare", desc: "Read verified reviews and compare prices.", step: "2" },
-                  { title: "Book / Contact", desc: "Connect with professionals directly.", step: "3" },
+                  { title: "Search & Discover", desc: "Find verified businesses and explore their services.", step: "1" },
+                  { title: "Book Appointment", desc: "Select a service, pick a date/time, and book instantly.", step: "2" },
+                  { title: "Confirmed & Notified", desc: "Receive email confirmation once the business approves.", step: "3" },
                 ].map((item) => (
                   <div key={item.step} className="flex gap-4">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand font-bold text-primary">
@@ -280,9 +280,10 @@ export default async function Home() {
               <h3 className="mb-8 font-heading text-2xl font-bold text-foreground">For Businesses</h3>
               <div className="space-y-8">
                 {[
-                  { title: "Register", desc: "Create your business account.", step: "1" },
-                  { title: "Setup", desc: "Add your services, prices, and locations.", step: "2" },
-                  { title: "Grow", desc: "Publish your profile and get booked.", step: "3" },
+                  { title: "Register & Upgrade", desc: "Create an account or upgrade your customer profile to submit a business application.", step: "1" },
+                  { title: "Activate Profile", desc: "Complete secure payment via Xendit to go public.", step: "2" },
+                  { title: "Setup Shop", desc: "List your services, pricing, and working hours.", step: "3" },
+                  { title: "Manage Bookings", desc: "Get email alerts and confirm incoming appointments.", step: "4" },
                 ].map((item) => (
                   <div key={item.step} className="flex gap-4">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand font-bold text-primary">
