@@ -60,7 +60,6 @@ export function BusinessStorefront({ business, services, reviews, addresses, isF
   const [selectedDate, setSelectedDate] = useState<string>('')
   const [selectedTime, setSelectedTime] = useState<string>('')
   const [bookedSlots, setBookedSlots] = useState<{time: string, duration_minutes: number}[]>([])
-  const [fetchingSlots, setFetchingSlots] = useState(false)
   const [bookingLoading, setBookingLoading] = useState(false)
   const [bookingError, setBookingError] = useState<string | null>(null)
   const [bookingSuccess, setBookingSuccess] = useState(false)
@@ -68,14 +67,11 @@ export function BusinessStorefront({ business, services, reviews, addresses, isF
   useEffect(() => {
     async function fetchBookedSlots() {
       if (selectedDate && business.id) {
-        setFetchingSlots(true)
         try {
           const slots = await getBookedSlots(business.id, selectedDate)
           setBookedSlots(slots)
         } catch (error) {
           console.error('Failed to fetch booked slots', error)
-        } finally {
-          setFetchingSlots(false)
         }
       } else {
         setBookedSlots([])

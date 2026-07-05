@@ -30,7 +30,7 @@ export async function getBookedSlots(businessId: string, dateStr: string) {
     const d = new Date(b.scheduled_at)
     const hh = d.getHours().toString().padStart(2, '0')
     const mm = d.getMinutes().toString().padStart(2, '0')
-    // @ts-ignore
+    // @ts-expect-error: Suppress type error until supabase types are regenerated
     const duration = b.services?.duration_minutes || 30
     return {
       time: `${hh}:${mm}`,
