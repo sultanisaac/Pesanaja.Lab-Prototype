@@ -27,7 +27,7 @@ export async function updateBookingStatus(bookingId: string, status: 'pending' |
     .eq('id', bookingId)
     .single()
 
-  const updateData: any = { status }
+  const updateData: { status: string; notes?: string } = { status }
   if (status === 'cancelled' && reason) {
     updateData.notes = bookingDetails?.notes 
       ? `${bookingDetails.notes}\n\nCancellation Reason: ${reason}`
