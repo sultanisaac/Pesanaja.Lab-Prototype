@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Calendar as CalendarIcon, Clock, User, Phone, Mail, AlertCircle, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -24,9 +25,17 @@ export function AppointmentDetailsModal({
   booking: Booking | null
   isOpen: boolean
   onClose: () => void
-  onUpdateStatus: (id: string, status: 'pending' | 'confirmed' | 'completed' | 'cancelled') => void
+  onUpdateStatus: (id: string, status: 'pending' | 'confirmed' | 'completed' | 'cancelled', reason?: string) => void
   loadingId: string | null
 }) {
+  const [isDeclining, setIsDeclining] = useState(false)
+  const [declineReason, setDeclineReason] = useState('')
+
+  useEffect(() => {
+    setIsDeclining(false)
+    setDeclineReason('')
+  }, [booking])
+
   if (!booking) return null
 
   const customerName = booking.customer?.first_name 
@@ -134,49 +143,86 @@ export function AppointmentDetailsModal({
         </div>
 
         {/* Actions Footer */}
-        <div className="p-4 bg-muted/30 border-t border-border flex justify-end gap-2">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Close
-          </button>
-          
-          {booking.status === 'pending' && (
+        <div className="p-4 bg-muted/30 border-t border-border flex flex-col sm:flex-row justify-end gap-2">
+          {isDeclining ? (
+            <div className="flex flex-col gap-2 w-full animate-in fade-in zoom-in-95 duration-200">
+              <textarea
+                autoFocus
+                placeholder="Reason for declining..."
+                className="w-full text-sm rounded-md border border-border p-2 focus:outline-none focus:ring-1 focus:ring-primary/50 resize-none bg-background text-foreground"
+                rows={2}
+                value={declineReason}
+                onChange={(e) => setDeclineReason(e.target.value)}
+              />
+              <div className="flex justify-end gap-2 mt-1">
+                <button
+                  onClick={() => {
+                    setIsDeclining(false)
+                    setDeclineReason('')
+                  }}
+                  className="px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted border border-border rounded-lg transition-colors"
+                >
+                  Back
+                </button>
+                <button
+                  onClick={() => {
+                    onUpdateStatus(booking.id, 'cancelled', declineReason)
+                    setIsDeclining(false)
+                    setDeclineReason('')
+                  }}
+                  disabled={isLoading}
+                  className="px-4 py-2 text-sm font-semibold bg-destructive text-white hover:bg-destructive/90 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Submit'}
+                </button>
+              </div>
+            </div>
+          ) : (
             <>
-              <button 
-                onClick={() => onUpdateStatus(booking.id, 'cancelled')}
-                disabled={isLoading}
-                className="px-4 py-2 bg-destructive/10 text-destructive text-sm font-semibold rounded-lg hover:bg-destructive/20 transition-colors disabled:opacity-50"
+              <button
+                onClick={onClose}
+                className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mr-auto sm:mr-0"
               >
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Decline'}
+                Close
               </button>
-              <button 
-                onClick={() => onUpdateStatus(booking.id, 'confirmed')}
-                disabled={isLoading}
-                className="px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
-              >
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirm'}
-              </button>
-            </>
-          )}
+              
+              {booking.status === 'pending' && (
+                <>
+                  <button 
+                    onClick={() => setIsDeclining(true)}
+                    disabled={isLoading}
+                    className="px-4 py-2 bg-destructive/10 text-destructive text-sm font-semibold rounded-lg hover:bg-destructive/20 transition-colors disabled:opacity-50"
+                  >
+                    Decline
+                  </button>
+                  <button 
+                    onClick={() => onUpdateStatus(booking.id, 'confirmed')}
+                    disabled={isLoading}
+                    className="px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+                  >
+                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Confirm'}
+                  </button>
+                </>
+              )}
 
-          {booking.status === 'confirmed' && (
-            <>
-              <button 
-                onClick={() => onUpdateStatus(booking.id, 'cancelled')}
-                disabled={isLoading}
-                className="px-4 py-2 bg-destructive/10 text-destructive text-sm font-semibold rounded-lg hover:bg-destructive/20 transition-colors disabled:opacity-50"
-              >
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Cancel Booking'}
-              </button>
-              <button 
-                onClick={() => onUpdateStatus(booking.id, 'completed')}
-                disabled={isLoading}
-                className="px-4 py-2 bg-success text-white text-sm font-semibold rounded-lg hover:bg-success/90 transition-colors disabled:opacity-50"
-              >
-                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Mark Completed'}
-              </button>
+              {booking.status === 'confirmed' && (
+                <>
+                  <button 
+                    onClick={() => setIsDeclining(true)}
+                    disabled={isLoading}
+                    className="px-4 py-2 bg-destructive/10 text-destructive text-sm font-semibold rounded-lg hover:bg-destructive/20 transition-colors disabled:opacity-50"
+                  >
+                    Cancel Booking
+                  </button>
+                  <button 
+                    onClick={() => onUpdateStatus(booking.id, 'completed')}
+                    disabled={isLoading}
+                    className="px-4 py-2 bg-success text-white text-sm font-semibold rounded-lg hover:bg-success/90 transition-colors disabled:opacity-50"
+                  >
+                    {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Mark Completed'}
+                  </button>
+                </>
+              )}
             </>
           )}
         </div>

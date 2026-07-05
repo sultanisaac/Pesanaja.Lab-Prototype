@@ -3,9 +3,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { sendEmail } from '@/lib/email'
-import { getAppointmentConfirmedEmailHtml } from '@/lib/emailTemplates'
+import { getAppointmentConfirmedEmailHtml, getAppointmentCancelledEmailHtml, getAppointmentDeclinedEmailHtml } from '@/lib/emailTemplates'
 
-export async function updateBookingStatus(bookingId: string, status: 'pending' | 'confirmed' | 'completed' | 'cancelled') {
+export async function updateBookingStatus(bookingId: string, status: 'pending' | 'confirmed' | 'completed' | 'cancelled', reason?: string) {
   const supabase = await createClient()
   
   // Verify ownership
@@ -23,14 +23,21 @@ export async function updateBookingStatus(bookingId: string, status: 'pending' |
   // Get booking details first to know who to notify
   const { data: bookingDetails } = await supabase
     .from('bookings')
-    .select('customer_id, scheduled_at, services(name), businesses(name)')
+    .select('customer_id, scheduled_at, notes, status, services(name), businesses(name)')
     .eq('id', bookingId)
     .single()
+
+  const updateData: { status: string; notes?: string } = { status }
+  if (status === 'cancelled' && reason) {
+    updateData.notes = bookingDetails?.notes 
+      ? `${bookingDetails.notes}\n\nCancellation Reason: ${reason}`
+      : `Cancellation Reason: ${reason}`
+  }
 
   // Update status
   const { error } = await supabase
     .from('bookings')
-    .update({ status })
+    .update(updateData)
     .eq('id', bookingId)
     .eq('business_id', business.id)
 
@@ -50,6 +57,18 @@ export async function updateBookingStatus(bookingId: string, status: 'pending' |
     let message = `Your appointment for ${serviceName} has been ${status}.`
     if (status === 'confirmed') {
       message = `Your appointment at ${businessName} has been confirmed for ${appointmentTime}.`
+    } else if (status === 'cancelled' && reason) {
+      if (bookingDetails.status === 'pending') {
+        message = `Your appointment request at ${businessName} has been declined. Reason: ${reason}`
+      } else {
+        message = `Your appointment at ${businessName} has been cancelled. Reason: ${reason}`
+      }
+    } else if (status === 'cancelled' && !reason) {
+      if (bookingDetails.status === 'pending') {
+        message = `Your appointment request at ${businessName} has been declined.`
+      } else {
+        message = `Your appointment at ${businessName} has been cancelled.`
+      }
     }
 
     await supabase.from('notifications').insert({
@@ -57,9 +76,10 @@ export async function updateBookingStatus(bookingId: string, status: 'pending' |
       title: `Appointment ${status === 'confirmed' ? 'Confirmed' : 'Cancelled'}`,
       message,
       link: '/dashboard/customer/bookings',
+      type: status === 'confirmed' ? 'booking_confirmed' : 'booking_cancelled',
     })
 
-    if (status === 'confirmed') {
+    if (status === 'confirmed' || status === 'cancelled') {
       const { createClient: createSupabaseClient } = await import('@supabase/supabase-js')
       const adminAuth = createSupabaseClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -84,13 +104,35 @@ export async function updateBookingStatus(bookingId: string, status: 'pending' |
           ? new Date(bookingDetails.scheduled_at).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })
           : appointmentTime
 
-        const html = getAppointmentConfirmedEmailHtml(customerFullName, businessName, serviceName, appointmentDateStr)
-        
-        await sendEmail({
-          to: customerEmail,
-          subject: `✅ Appointment Confirmed: Your booking at ${businessName}`,
-          html
-        })
+        if (status === 'confirmed') {
+          const html = getAppointmentConfirmedEmailHtml(customerFullName, businessName, serviceName, appointmentDateStr)
+          
+          await sendEmail({
+            to: customerEmail,
+            subject: `✅ Appointment Confirmed: Your booking at ${businessName}`,
+            html
+          })
+        } else if (status === 'cancelled') {
+          // If previous status was 'pending', it's a decline
+          if (bookingDetails.status === 'pending') {
+            const html = getAppointmentDeclinedEmailHtml(customerFullName, businessName, serviceName, appointmentDateStr, reason)
+            
+            await sendEmail({
+              to: customerEmail,
+              subject: `⚠️ Appointment Declined: Your booking request at ${businessName}`,
+              html
+            })
+          } else {
+            // Previous status was confirmed, it's a cancellation
+            const html = getAppointmentCancelledEmailHtml(customerFullName, businessName, serviceName, appointmentDateStr, reason)
+            
+            await sendEmail({
+              to: customerEmail,
+              subject: `❌ Appointment Cancelled: Your booking at ${businessName}`,
+              html
+            })
+          }
+        }
       }
     }
   }

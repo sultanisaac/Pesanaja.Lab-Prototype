@@ -76,6 +76,7 @@ export async function submitUpgradeRequest(formData: FormData): Promise<void> {
       title: 'New Business Verification Request',
       message: `New business verification request from ${user.email?.split('@')[0] || 'User'} for ${business_name}.`,
       link: '/dashboard/admin/verifications',
+      type: 'upgrade_request',
     }))
     
     await adminAuth.from('notifications').insert(notifications)
