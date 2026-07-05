@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Clock, Star, MapPin, Heart, ArrowLeft, Loader2, Info, Mail, Phone } from 'lucide-react'
-import { createBooking, toggleFavorite } from './actions'
+import { createBooking, toggleFavorite, getBookedSlots } from './actions'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
@@ -59,9 +59,30 @@ export function BusinessStorefront({ business, services, reviews, addresses, isF
   const [selectedService, setSelectedService] = useState<Service | null>(null)
   const [selectedDate, setSelectedDate] = useState<string>('')
   const [selectedTime, setSelectedTime] = useState<string>('')
+  const [bookedSlots, setBookedSlots] = useState<{time: string, duration_minutes: number}[]>([])
+  const [fetchingSlots, setFetchingSlots] = useState(false)
   const [bookingLoading, setBookingLoading] = useState(false)
   const [bookingError, setBookingError] = useState<string | null>(null)
   const [bookingSuccess, setBookingSuccess] = useState(false)
+
+  useEffect(() => {
+    async function fetchBookedSlots() {
+      if (selectedDate && business.id) {
+        setFetchingSlots(true)
+        try {
+          const slots = await getBookedSlots(business.id, selectedDate)
+          setBookedSlots(slots)
+        } catch (error) {
+          console.error('Failed to fetch booked slots', error)
+        } finally {
+          setFetchingSlots(false)
+        }
+      } else {
+        setBookedSlots([])
+      }
+    }
+    fetchBookedSlots()
+  }, [selectedDate, business.id])
 
   // Generate available time slots based on operating hours
   const generateTimeSlots = () => {
@@ -75,7 +96,7 @@ export function BusinessStorefront({ business, services, reviews, addresses, isF
     
     if (!dayConfig || !dayConfig.isOpen) return []
 
-    const slots = []
+    const slots: string[] = []
     
     // Duration step (e.g., if service is 30 mins, step is 30. If 60, step is 60. Default 30 if null)
     const stepMins = selectedService?.duration_minutes || 30
@@ -91,11 +112,20 @@ export function BusinessStorefront({ business, services, reviews, addresses, isF
         const slotEnd = new Date(current.getTime() + stepMins * 60000)
         if (slotEnd > endTime) break
 
-        // Only add slot if it's in the future
+        // Only add slot if it's in the future and doesn't overlap with confirmed bookings
         if (current > now) {
-          const hh = current.getHours().toString().padStart(2, '0');
-          const mm = current.getMinutes().toString().padStart(2, '0');
-          slots.push(`${hh}:${mm}`);
+          const isOverlapping = bookedSlots.some(booked => {
+            const bookedStart = new Date(`${selectedDate}T${booked.time}:00`)
+            const bookedEnd = new Date(bookedStart.getTime() + booked.duration_minutes * 60000)
+            // Strict overlap check (current slot must not overlap at all with booked slot)
+            return (current < bookedEnd && slotEnd > bookedStart)
+          })
+
+          if (!isOverlapping) {
+            const hh = current.getHours().toString().padStart(2, '0');
+            const mm = current.getMinutes().toString().padStart(2, '0');
+            slots.push(`${hh}:${mm}`);
+          }
         }
         current.setMinutes(current.getMinutes() + stepMins)
       }
