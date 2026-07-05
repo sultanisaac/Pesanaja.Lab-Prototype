@@ -33,7 +33,15 @@ type BusinessStorefrontProps = {
     logo_url: string | null
     contact_phone: string | null
     contact_email: string | null
-    operating_hours?: Record<string, { isOpen: boolean; openTime: string; closeTime: string }>
+    operating_hours?: Record<string, { 
+      isOpen: boolean; 
+      openTime?: string; 
+      closeTime?: string; 
+      hasBreak?: boolean; 
+      openTime2?: string; 
+      closeTime2?: string;
+      slots?: { openTime: string; closeTime: string }[] 
+    }>
   }
   services: Service[]
   reviews: Review[]
@@ -72,23 +80,36 @@ export function BusinessStorefront({ business, services, reviews, addresses, isF
     // Duration step (e.g., if service is 30 mins, step is 30. If 60, step is 60. Default 30 if null)
     const stepMins = selectedService?.duration_minutes || 30
     
-    const current = new Date(`${selectedDate}T${dayConfig.openTime}:00`)
-    const endTime = new Date(`${selectedDate}T${dayConfig.closeTime}:00`)
     const now = new Date()
 
-    while (current < endTime) {
-      // Ensure the slot + duration doesn't exceed closeTime
-      const slotEnd = new Date(current.getTime() + stepMins * 60000)
-      if (slotEnd > endTime) break
+    const generateSlotsForShift = (startStr: string, endStr: string) => {
+      const current = new Date(`${selectedDate}T${startStr}:00`)
+      const endTime = new Date(`${selectedDate}T${endStr}:00`)
 
-      // Only add slot if it's in the future
-      if (current > now) {
-        const hh = current.getHours().toString().padStart(2, '0');
-        const mm = current.getMinutes().toString().padStart(2, '0');
-        slots.push(`${hh}:${mm}`);
+      while (current < endTime) {
+        // Ensure the slot + duration doesn't exceed closeTime
+        const slotEnd = new Date(current.getTime() + stepMins * 60000)
+        if (slotEnd > endTime) break
+
+        // Only add slot if it's in the future
+        if (current > now) {
+          const hh = current.getHours().toString().padStart(2, '0');
+          const mm = current.getMinutes().toString().padStart(2, '0');
+          slots.push(`${hh}:${mm}`);
+        }
+        current.setMinutes(current.getMinutes() + stepMins)
       }
-      current.setMinutes(current.getMinutes() + stepMins)
     }
+
+    if (dayConfig.slots && dayConfig.slots.length > 0) {
+      dayConfig.slots.forEach(slot => generateSlotsForShift(slot.openTime, slot.closeTime))
+    } else if (dayConfig.openTime && dayConfig.closeTime) {
+      generateSlotsForShift(dayConfig.openTime, dayConfig.closeTime)
+      if (dayConfig.hasBreak && dayConfig.openTime2 && dayConfig.closeTime2) {
+        generateSlotsForShift(dayConfig.openTime2, dayConfig.closeTime2)
+      }
+    }
+
     return slots
   }
 
@@ -351,8 +372,16 @@ export function BusinessStorefront({ business, services, reviews, addresses, isF
                         return (
                           <div key={day} className="flex justify-between text-sm">
                             <span className="capitalize text-muted-foreground">{day.slice(0,3)}</span>
-                            <span className={config.isOpen ? "text-foreground font-medium" : "text-muted-foreground italic"}>
-                              {config.isOpen ? `${config.openTime} - ${config.closeTime}` : 'Closed'}
+                            <span className={config.isOpen ? "text-foreground font-medium" : "text-muted-foreground italic text-right"}>
+                              {config.isOpen 
+                                ? (config.slots && config.slots.length > 0
+                                    ? <span className="text-right block">
+                                        {config.slots.map((s, i) => <span key={i} className="block">{s.openTime} - {s.closeTime}</span>)}
+                                      </span>
+                                    : (config.hasBreak && config.openTime2 && config.closeTime2 
+                                        ? <span className="text-right block">{config.openTime} - {config.closeTime}<br/>{config.openTime2} - {config.closeTime2}</span>
+                                        : `${config.openTime} - ${config.closeTime}`)) 
+                                : 'Closed'}
                             </span>
                           </div>
                         )
