@@ -44,6 +44,11 @@ export async function submitReview(formData: FormData) {
     comment: comment.trim() || null
   })
 
+  if (!error) {
+    // Update the booking to mark it as reviewed so it never shows up again even if review is deleted
+    await supabase.from('bookings').update({ has_been_reviewed: true }).eq('id', bookingId)
+  }
+
   if (error) {
     if (error.code === '23505') {
        return { error: 'You have already reviewed this appointment.' }

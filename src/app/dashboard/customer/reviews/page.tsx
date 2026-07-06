@@ -28,8 +28,8 @@ export default async function CustomerReviewsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // Fetch all completed bookings
-  const { data: completedBookings } = await supabase
+  // Fetch all completed but unreviewed bookings
+  const { data: unreviewedBookingsResponse } = await supabase
     .from('bookings')
     .select(`
       id, scheduled_at, business_id,
@@ -38,7 +38,10 @@ export default async function CustomerReviewsPage() {
     `)
     .eq('customer_id', user.id)
     .eq('status', 'completed')
+    .eq('has_been_reviewed', false)
     .order('scheduled_at', { ascending: false })
+
+  const unreviewedBookings = unreviewedBookingsResponse || []
 
   // Fetch submitted reviews
   const { data: reviews } = await supabase
@@ -53,9 +56,6 @@ export default async function CustomerReviewsPage() {
     `)
     .eq('customer_id', user.id)
     .order('created_at', { ascending: false })
-
-  const reviewedBookingIds = new Set(reviews?.map(r => r.booking_id) || [])
-  const unreviewedBookings = completedBookings?.filter(b => !reviewedBookingIds.has(b.id)) || []
 
   const avgRating = reviews && reviews.length > 0
     ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
