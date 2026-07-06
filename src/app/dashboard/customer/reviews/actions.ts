@@ -25,7 +25,10 @@ export async function submitReview(formData: FormData) {
   // verify the booking belongs to the user and is completed
   const { data: booking } = await supabase
     .from('bookings')
-    .select('id')
+    .select(`
+      id,
+      services:service_id(name)
+    `)
     .eq('id', bookingId)
     .eq('customer_id', user.id)
     .eq('status', 'completed')
@@ -46,6 +49,58 @@ export async function submitReview(formData: FormData) {
        return { error: 'You have already reviewed this appointment.' }
     }
     return { error: error.message }
+  }
+
+  // Fetch data for email notification
+  const { data: business } = await supabase
+    .from('businesses')
+    .select(`
+      name, 
+      contact_email,
+      owner:owner_id(email, first_name, last_name)
+    `)
+    .eq('id', businessId)
+    .single()
+
+  const { data: customer } = await supabase
+    .from('profiles')
+    .select('first_name, last_name, email')
+    .eq('id', user.id)
+    .single()
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const serviceName = (booking as any)?.services?.name || 'A service'
+  
+  type ProfileData = { email?: string; first_name?: string; last_name?: string } | null;
+  const ownerProfile = business?.owner as unknown as ProfileData;
+  const businessOwnerEmail = business?.contact_email || ownerProfile?.email;
+
+  if (businessOwnerEmail) {
+    const ownerName = ownerProfile?.first_name 
+      ? `${ownerProfile.first_name} ${ownerProfile.last_name || ''}`.trim() 
+      : 'Business Owner'
+    
+    const customerName = customer?.first_name 
+      ? `${customer.first_name} ${customer.last_name || ''}`.trim() 
+      : customer?.email?.split('@')[0] || 'A customer'
+
+    const { sendEmail } = await import('@/lib/email')
+    const { getReviewNotificationHtml } = await import('@/lib/email-templates/review-notification')
+
+    const htmlContent = getReviewNotificationHtml({
+      ownerName,
+      businessName: business?.name || 'your business',
+      customerName,
+      serviceName,
+      rating,
+      reviewComment: comment.trim() || 'No written feedback provided.'
+    })
+
+    await sendEmail({
+      to: businessOwnerEmail,
+      subject: `⭐ New ${rating}-Star Review for ${business?.name || 'your business'} on Pesanaja.Lab`,
+      html: htmlContent
+    })
   }
 
   revalidatePath('/dashboard/customer/reviews')
