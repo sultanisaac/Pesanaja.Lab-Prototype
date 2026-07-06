@@ -185,5 +185,6 @@ export async function toggleFavorite(businessId: string, isFavorite: boolean) {
   }
 
   revalidatePath(`/business/${businessId}`)
+  revalidatePath('/dashboard/customer/favorites')
   return { success: true }
 }

@@ -64,6 +64,39 @@ export function BusinessStorefront({ business, services, reviews, addresses, isF
   const [bookingError, setBookingError] = useState<string | null>(null)
   const [bookingSuccess, setBookingSuccess] = useState(false)
 
+  // Real-time Reviews Listener
+  useEffect(() => {
+    let channel: import('@supabase/supabase-js').RealtimeChannel | null = null;
+    
+    import('@/lib/supabase/client').then(({ createClient }) => {
+      const supabase = createClient()
+      channel = supabase
+        .channel(`storefront-reviews-${business.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'reviews',
+            filter: `business_id=eq.${business.id}`,
+          },
+          () => {
+            router.refresh()
+          }
+        )
+        .subscribe()
+    })
+
+    return () => {
+      if (channel) {
+        import('@/lib/supabase/client').then(({ createClient }) => {
+          const supabase = createClient()
+          supabase.removeChannel(channel!)
+        })
+      }
+    }
+  }, [business.id, router])
+
   useEffect(() => {
     async function fetchBookedSlots() {
       if (selectedDate && business.id) {
@@ -321,26 +354,41 @@ export function BusinessStorefront({ business, services, reviews, addresses, isF
               <p className="text-muted-foreground italic">No reviews yet.</p>
             ) : (
               <div className="space-y-4">
-                {reviews.map((review) => (
-                  <div key={review.id} className="p-4 bg-background rounded-xl border border-border/50 shadow-sm">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="font-bold text-sm">
-                        {review.customer?.first_name 
-                          ? `${review.customer.first_name} ${review.customer.last_name || ''}` 
-                          : 'Anonymous Customer'}
+                {reviews.map((review) => {
+                  const customerName = review.customer?.first_name 
+                    ? `${review.customer.first_name} ${review.customer.last_name || ''}`.trim()
+                    : 'Anonymous Customer'
+                  return (
+                  <div key={review.id} className="p-4 sm:p-5 bg-background rounded-xl border border-border/50 shadow-sm transition-all hover:shadow-md">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 shrink-0 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
+                          {customerName.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="font-bold text-sm text-foreground">{customerName}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {new Date(review.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex text-warning">
+                      <div className="flex gap-0.5 ml-13 sm:ml-0">
                         {Array.from({ length: 5 }).map((_, i) => (
-                          <Star key={i} className={cn("h-4 w-4", i < review.rating ? "fill-warning" : "text-muted stroke-muted-foreground/30")} />
+                          <Star key={i} className={cn("h-4 w-4", i < review.rating ? "fill-warning text-warning" : "text-muted stroke-muted-foreground/30")} />
                         ))}
                       </div>
                     </div>
-                    <div className="text-xs text-muted-foreground mb-3">
-                      {new Date(review.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
-                    </div>
-                    <p className="text-sm text-foreground/90">{review.comment || 'No comment provided.'}</p>
+                    {review.comment ? (
+                      <div className="ml-13 sm:ml-0">
+                        <p className="text-sm text-foreground/90 leading-relaxed bg-muted/30 p-3 rounded-lg border border-border/50 relative">
+                           {review.comment}
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground italic ml-13 sm:ml-0">No written feedback provided.</p>
+                    )}
                   </div>
-                ))}
+                )})}
               </div>
             )}
           </section>

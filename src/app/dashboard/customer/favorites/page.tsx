@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Heart, ArrowLeft, Star, MapPin, Search } from 'lucide-react'
 import Link from 'next/link'
 import { removeFavorite } from './actions'
+import { RealtimeFavorites } from './RealtimeFavorites'
 
 export default async function CustomerFavoritesPage() {
   const supabase = await createClient()
@@ -24,6 +25,7 @@ export default async function CustomerFavoritesPage() {
 
   return (
     <div className="space-y-6 max-w-3xl">
+      <RealtimeFavorites customerId={user.id} />
       {/* Header */}
       <div className="flex items-center gap-3">
         <Link href="/dashboard/customer" className="text-muted-foreground hover:text-foreground transition-colors">
