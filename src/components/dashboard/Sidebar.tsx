@@ -45,6 +45,7 @@ const NAV_ITEMS: Record<UserRole, NavItem[]> = {
   business: [
     { label: 'Overview', href: '/dashboard/business', icon: LayoutDashboard },
     { label: 'Appointments', href: '/dashboard/business/appointments', icon: Calendar },
+    { label: 'Reviews', href: '/dashboard/business/reviews', icon: Star },
     { label: 'Analytics', href: '/dashboard/business/analytics', icon: BarChart2 },
     { label: 'Business Settings', href: '/dashboard/business/settings', icon: Settings2 },
     { label: 'Subscription', href: '/dashboard/business/subscription', icon: Zap },
