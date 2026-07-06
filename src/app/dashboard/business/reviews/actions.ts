@@ -10,7 +10,7 @@ export async function deleteReview(formData: FormData) {
   if (!user) redirect('/login')
 
   const reviewId = formData.get('review_id') as string
-  if (!reviewId) return { error: 'Missing review id' }
+  if (!reviewId) throw new Error('Missing review id')
 
   // Verify the business belongs to the user
   // Get business for the user
@@ -20,7 +20,7 @@ export async function deleteReview(formData: FormData) {
     .eq('owner_id', user.id)
     .single()
 
-  if (!business) return { error: 'Business not found' }
+  if (!business) throw new Error('Business not found')
 
   const { error } = await supabase
     .from('reviews')
@@ -29,11 +29,10 @@ export async function deleteReview(formData: FormData) {
     .eq('business_id', business.id)
 
   if (error) {
-    return { error: error.message }
+    throw new Error(error.message)
   }
 
   revalidatePath('/dashboard/business/reviews')
   revalidatePath(`/business/${business.id}`)
   revalidatePath('/dashboard/customer/reviews')
-  return { success: true }
 }

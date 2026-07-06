@@ -111,7 +111,7 @@ export default async function BusinessReviewsPage() {
             const service  = booking?.services as any
 
             const customerName = customer?.first_name 
-              ? \`\${customer.first_name} \${customer.last_name || ''}\`.trim() 
+              ? `${customer.first_name} ${customer.last_name || ''}`.trim() 
               : customer?.email?.split('@')[0] || 'Customer'
 
             return (
