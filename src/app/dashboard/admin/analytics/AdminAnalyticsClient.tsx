@@ -134,40 +134,80 @@ export default function AdminAnalyticsClient({ data }: AdminAnalyticsClientProps
         </CardHeader>
         <CardContent>
           {current.businessPayments.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left font-medium text-muted-foreground py-2 pr-4">Business</th>
-                    <th className="text-center font-medium text-muted-foreground py-2 px-4">Bookings</th>
-                    <th className="text-right font-medium text-muted-foreground py-2 px-4">Revenue</th>
-                    <th className="text-right font-medium text-muted-foreground py-2 pl-4">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {current.businessPayments.map((biz, i) => (
-                    <tr key={i} className="border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors">
-                      <td className="py-3 pr-4">
-                        <div className="flex items-center gap-2">
-                          <div className="h-7 w-7 rounded-md bg-muted flex items-center justify-center shrink-0">
-                            <Briefcase className="h-3.5 w-3.5 text-muted-foreground" />
-                          </div>
-                          <span className="font-medium text-foreground">{biz.name}</span>
+            <div className="space-y-4">
+              {/* Mobile View */}
+              <div className="grid gap-4 md:hidden">
+                {current.businessPayments.map((biz, i) => (
+                  <div 
+                    key={`mobile-${i}`}
+                    className="p-4 rounded-xl border border-border bg-muted/20 hover:bg-muted/40 transition-colors space-y-3"
+                  >
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                          <Briefcase className="h-5 w-5 text-muted-foreground" />
                         </div>
-                      </td>
-                      <td className="py-3 px-4 text-center text-muted-foreground">{biz.bookings}</td>
-                      <td className="py-3 px-4 text-right font-medium text-foreground">
-                        Rp {biz.revenue.toLocaleString('id-ID')}
-                      </td>
-                      <td className="py-3 pl-4 text-right">
-                        <span className={cn('text-[10px] font-semibold px-2 py-1 rounded-full capitalize', statusColors[biz.status] ?? 'bg-muted text-muted-foreground')}>
-                          {biz.status}
-                        </span>
-                      </td>
+                        <div>
+                          <p className="font-semibold text-foreground">{biz.name}</p>
+                          <span className={cn('inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize', statusColors[biz.status] ?? 'bg-muted text-muted-foreground')}>
+                            {biz.status}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-border/50">
+                      <div>
+                        <p className="text-muted-foreground mb-0.5">Bookings</p>
+                        <p className="font-medium text-foreground">{biz.bookings}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground mb-0.5">Revenue</p>
+                        <p className="font-medium text-foreground text-success">
+                          Rp {biz.revenue.toLocaleString('id-ID')}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop View */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left font-medium text-muted-foreground py-2 pr-4">Business</th>
+                      <th className="text-center font-medium text-muted-foreground py-2 px-4">Bookings</th>
+                      <th className="text-right font-medium text-muted-foreground py-2 px-4">Revenue</th>
+                      <th className="text-right font-medium text-muted-foreground py-2 pl-4">Status</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {current.businessPayments.map((biz, i) => (
+                      <tr key={`desktop-${i}`} className="border-b border-border/50 last:border-0 hover:bg-muted/30 transition-colors">
+                        <td className="py-3 pr-4">
+                          <div className="flex items-center gap-2">
+                            <div className="h-7 w-7 rounded-md bg-muted flex items-center justify-center shrink-0">
+                              <Briefcase className="h-3.5 w-3.5 text-muted-foreground" />
+                            </div>
+                            <span className="font-medium text-foreground">{biz.name}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-center text-muted-foreground">{biz.bookings}</td>
+                        <td className="py-3 px-4 text-right font-medium text-foreground">
+                          Rp {biz.revenue.toLocaleString('id-ID')}
+                        </td>
+                        <td className="py-3 pl-4 text-right">
+                          <span className={cn('text-[10px] font-semibold px-2 py-1 rounded-full capitalize', statusColors[biz.status] ?? 'bg-muted text-muted-foreground')}>
+                            {biz.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           ) : (
             <div className="py-12 text-center">

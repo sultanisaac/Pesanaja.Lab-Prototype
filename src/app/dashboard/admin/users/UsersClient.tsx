@@ -72,70 +72,135 @@ export default function UsersClient({ users, currentUserId }: { users: Profile[]
               No users registered yet.
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Name</th>
-                    <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email</th>
-                    <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Role</th>
-                    <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Phone</th>
-                    <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Joined</th>
-                    <th className="text-right py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {users.map((user) => {
-                    const cfg = roleConfig[user.role ?? 'customer'] ?? roleConfig.customer
-                    const Icon = cfg.icon
-                    const displayName =
-                      user.first_name
-                        ? `${user.first_name} ${user.last_name ?? ''}`.trim()
-                        : user.email?.split('@')[0] ?? '—'
-                    return (
-                      <tr 
-                        key={user.id} 
-                        className="hover:bg-muted/40 transition-colors cursor-pointer group"
-                        onClick={(e) => {
-                          // Prevent opening modal if clicking the action menu
-                          if ((e.target as HTMLElement).closest('.action-menu-container')) return
-                          handleRowClick(user)
-                        }}
-                      >
-                        <td className="py-3 px-2">
-                          <div className="flex items-center gap-2">
-                            <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center shrink-0">
-                              <Icon className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
-                            </div>
-                            <span className="font-medium text-foreground group-hover:text-primary transition-colors">{displayName}</span>
+            <div className="space-y-4">
+              {/* Mobile View */}
+              <div className="grid gap-4 md:hidden">
+                {users.map((user) => {
+                  const cfg = roleConfig[user.role ?? 'customer'] ?? roleConfig.customer
+                  const Icon = cfg.icon
+                  const displayName = user.first_name
+                    ? `${user.first_name} ${user.last_name ?? ''}`.trim()
+                    : user.email?.split('@')[0] ?? '—'
+                  return (
+                    <div 
+                      key={`mobile-${user.id}`}
+                      className="p-4 rounded-xl border border-border bg-muted/20 hover:bg-muted/40 transition-colors cursor-pointer space-y-3"
+                      onClick={(e) => {
+                        if ((e.target as HTMLElement).closest('.action-menu-container')) return
+                        handleRowClick(user)
+                      }}
+                    >
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center shrink-0">
+                            <Icon className="h-5 w-5 text-muted-foreground" />
                           </div>
-                        </td>
-                        <td className="py-3 px-2 text-muted-foreground">{user.email ?? '—'}</td>
-                        <td className="py-3 px-2">
+                          <div>
+                            <p className="font-semibold text-foreground">{displayName}</p>
+                            <p className="text-xs text-muted-foreground">{user.email ?? '—'}</p>
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-2">
                           <span className={cn('text-[10px] font-semibold px-2 py-1 rounded-full capitalize', cfg.color)}>
                             {cfg.label}
                           </span>
-                        </td>
-                        <td className="py-3 px-2 text-muted-foreground">{user.phone_number ?? '—'}</td>
-                        <td className="py-3 px-2 text-muted-foreground">
-                          {new Date(user.created_at).toLocaleDateString('id-ID', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
-                        </td>
-                        <td className="py-3 px-2 text-right action-menu-container">
-                          <UserActionMenu 
-                            userId={user.id} 
-                            currentRole={user.role ?? 'customer'} 
-                            isCurrentUser={currentUserId === user.id} 
-                          />
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+                          <div className="action-menu-container" onClick={(e) => e.stopPropagation()}>
+                            <UserActionMenu 
+                              userId={user.id} 
+                              currentRole={user.role ?? 'customer'} 
+                              isCurrentUser={currentUserId === user.id} 
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-border/50">
+                        <div>
+                          <p className="text-muted-foreground mb-0.5">Phone</p>
+                          <p className="font-medium text-foreground">{user.phone_number ?? '—'}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground mb-0.5">Joined</p>
+                          <p className="font-medium text-foreground">
+                            {new Date(user.created_at).toLocaleDateString('id-ID', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Desktop View */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Name</th>
+                      <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email</th>
+                      <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Role</th>
+                      <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Phone</th>
+                      <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Joined</th>
+                      <th className="text-right py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {users.map((user) => {
+                      const cfg = roleConfig[user.role ?? 'customer'] ?? roleConfig.customer
+                      const Icon = cfg.icon
+                      const displayName =
+                        user.first_name
+                          ? `${user.first_name} ${user.last_name ?? ''}`.trim()
+                          : user.email?.split('@')[0] ?? '—'
+                      return (
+                        <tr 
+                          key={`desktop-${user.id}`} 
+                          className="hover:bg-muted/40 transition-colors cursor-pointer group"
+                          onClick={(e) => {
+                            // Prevent opening modal if clicking the action menu
+                            if ((e.target as HTMLElement).closest('.action-menu-container')) return
+                            handleRowClick(user)
+                          }}
+                        >
+                          <td className="py-3 px-2">
+                            <div className="flex items-center gap-2">
+                              <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+                                <Icon className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
+                              </div>
+                              <span className="font-medium text-foreground group-hover:text-primary transition-colors">{displayName}</span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-2 text-muted-foreground">{user.email ?? '—'}</td>
+                          <td className="py-3 px-2">
+                            <span className={cn('text-[10px] font-semibold px-2 py-1 rounded-full capitalize', cfg.color)}>
+                              {cfg.label}
+                            </span>
+                          </td>
+                          <td className="py-3 px-2 text-muted-foreground">{user.phone_number ?? '—'}</td>
+                          <td className="py-3 px-2 text-muted-foreground">
+                            {new Date(user.created_at).toLocaleDateString('id-ID', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            })}
+                          </td>
+                          <td className="py-3 px-2 text-right action-menu-container">
+                            <UserActionMenu 
+                              userId={user.id} 
+                              currentRole={user.role ?? 'customer'} 
+                              isCurrentUser={currentUserId === user.id} 
+                            />
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </CardContent>
