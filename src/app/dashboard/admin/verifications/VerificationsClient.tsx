@@ -132,74 +132,144 @@ export default function VerificationsClient({
             <CardDescription>Businesses that have already been approved or rejected</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Business</th>
-                    <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Owner</th>
-                    <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
-                    <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Registered</th>
-                    <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Re-review</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {reviewedBiz.map((biz) => {
-                    const cfg = bizStatusConfig[biz.status] ?? bizStatusConfig.pending
-                    const owner = biz.profiles
-                    const ownerName = owner?.first_name
-                      ? `${owner.first_name} ${owner.last_name ?? ''}`.trim()
-                      : owner?.email?.split('@')[0] ?? '—'
-                    return (
-                      <tr 
-                        key={biz.id} 
-                        className="hover:bg-muted/40 transition-colors cursor-pointer group"
-                        onClick={(e) => {
-                          if ((e.target as HTMLElement).closest('form')) return
-                          handleRowClick(biz)
-                        }}
-                      >
-                        <td className="py-3 px-2">
-                          <div className="flex items-center gap-2">
-                            <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                              <Briefcase className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
-                            </div>
-                            <span className="font-medium text-foreground group-hover:text-primary transition-colors">{biz.name}</span>
+            <div className="space-y-4">
+              {/* Mobile View */}
+              <div className="grid gap-4 md:hidden">
+                {reviewedBiz.map((biz) => {
+                  const cfg = bizStatusConfig[biz.status] ?? bizStatusConfig.pending
+                  const owner = biz.profiles
+                  const ownerName = owner?.first_name
+                    ? `${owner.first_name} ${owner.last_name ?? ''}`.trim()
+                    : owner?.email?.split('@')[0] ?? '—'
+                  return (
+                    <div 
+                      key={`mobile-${biz.id}`}
+                      className="p-4 rounded-xl border border-border bg-muted/20 hover:bg-muted/40 transition-colors cursor-pointer space-y-3"
+                      onClick={(e) => {
+                        if ((e.target as HTMLElement).closest('form')) return
+                        handleRowClick(biz)
+                      }}
+                    >
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                            <Briefcase className="h-5 w-5 text-muted-foreground" />
                           </div>
-                        </td>
-                        <td className="py-3 px-2 text-muted-foreground">{ownerName}</td>
-                        <td className="py-3 px-2">
-                          <span className={cn('text-[10px] font-semibold px-2 py-1 rounded-full capitalize', cfg.color)}>
-                            {cfg.label}
-                          </span>
-                        </td>
-                        <td className="py-3 px-2 text-muted-foreground">
-                          {new Date(biz.created_at).toLocaleDateString('id-ID', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
-                        </td>
-                        <td className="py-3 px-2">
-                          <form action={updateBusinessStatus}>
-                            <input type="hidden" name="business_id" value={biz.id} />
-                            <input type="hidden" name="status" value={biz.status === 'verified' ? 'rejected' : 'verified'} />
-                            <button
-                              type="submit"
-                              className={cn(
-                                'text-xs font-semibold hover:underline',
-                                biz.status === 'verified' ? 'text-destructive' : 'text-success'
-                              )}
-                            >
-                              {biz.status === 'verified' ? 'Revoke' : 'Approve'}
-                            </button>
-                          </form>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+                          <div>
+                            <p className="font-semibold text-foreground">{biz.name}</p>
+                            <span className={cn('inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full capitalize', cfg.color)}>
+                              {cfg.label}
+                            </span>
+                          </div>
+                        </div>
+                        <form action={updateBusinessStatus} onClick={(e) => e.stopPropagation()}>
+                          <input type="hidden" name="business_id" value={biz.id} />
+                          <input type="hidden" name="status" value={biz.status === 'verified' ? 'rejected' : 'verified'} />
+                          <button
+                            type="submit"
+                            className={cn(
+                              'text-xs font-semibold px-3 py-1.5 rounded-lg border transition-colors',
+                              biz.status === 'verified' 
+                                ? 'bg-destructive/10 text-destructive border-destructive/20 hover:bg-destructive/20' 
+                                : 'bg-success/10 text-success border-success/20 hover:bg-success/20'
+                            )}
+                          >
+                            {biz.status === 'verified' ? 'Revoke' : 'Approve'}
+                          </button>
+                        </form>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-border/50">
+                        <div>
+                          <p className="text-muted-foreground mb-0.5">Owner</p>
+                          <p className="font-medium text-foreground">{ownerName}</p>
+                        </div>
+                        <div>
+                          <p className="text-muted-foreground mb-0.5">Registered</p>
+                          <p className="font-medium text-foreground">
+                            {new Date(biz.created_at).toLocaleDateString('id-ID', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Desktop View */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Business</th>
+                      <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Owner</th>
+                      <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
+                      <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Registered</th>
+                      <th className="text-left py-3 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Re-review</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {reviewedBiz.map((biz) => {
+                      const cfg = bizStatusConfig[biz.status] ?? bizStatusConfig.pending
+                      const owner = biz.profiles
+                      const ownerName = owner?.first_name
+                        ? `${owner.first_name} ${owner.last_name ?? ''}`.trim()
+                        : owner?.email?.split('@')[0] ?? '—'
+                      return (
+                        <tr 
+                          key={`desktop-${biz.id}`} 
+                          className="hover:bg-muted/40 transition-colors cursor-pointer group"
+                          onClick={(e) => {
+                            if ((e.target as HTMLElement).closest('form')) return
+                            handleRowClick(biz)
+                          }}
+                        >
+                          <td className="py-3 px-2">
+                            <div className="flex items-center gap-2">
+                              <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                                <Briefcase className="h-3.5 w-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
+                              </div>
+                              <span className="font-medium text-foreground group-hover:text-primary transition-colors">{biz.name}</span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-2 text-muted-foreground">{ownerName}</td>
+                          <td className="py-3 px-2">
+                            <span className={cn('text-[10px] font-semibold px-2 py-1 rounded-full capitalize', cfg.color)}>
+                              {cfg.label}
+                            </span>
+                          </td>
+                          <td className="py-3 px-2 text-muted-foreground">
+                            {new Date(biz.created_at).toLocaleDateString('id-ID', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            })}
+                          </td>
+                          <td className="py-3 px-2">
+                            <form action={updateBusinessStatus}>
+                              <input type="hidden" name="business_id" value={biz.id} />
+                              <input type="hidden" name="status" value={biz.status === 'verified' ? 'rejected' : 'verified'} />
+                              <button
+                                type="submit"
+                                className={cn(
+                                  'text-xs font-semibold hover:underline',
+                                  biz.status === 'verified' ? 'text-destructive' : 'text-success'
+                                )}
+                              >
+                                {biz.status === 'verified' ? 'Revoke' : 'Approve'}
+                              </button>
+                            </form>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </CardContent>
         </Card>
