@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Clock, Star, MapPin, Heart, ArrowLeft, Loader2, Info, Mail, Phone } from 'lucide-react'
+import { Clock, Star, MapPin, Heart, ArrowLeft, Loader2, Info, Mail, Phone, Globe } from 'lucide-react'
 import { createBooking, toggleFavorite, getBookedSlots } from './actions'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -33,6 +33,7 @@ type BusinessStorefrontProps = {
     logo_url: string | null
     contact_phone: string | null
     contact_email: string | null
+    website: string | null
     operating_hours?: Record<string, { 
       isOpen: boolean; 
       openTime?: string; 
@@ -401,9 +402,15 @@ export function BusinessStorefront({ business, services, reviews, addresses, isF
               <CardTitle className="text-lg">Contact & Info</CardTitle>
             </CardHeader>
             <CardContent className="pt-4 space-y-4">
-              {(business.contact_email || business.contact_phone) && (
+              {(business.contact_email || business.contact_phone || business.website) && (
                 <div className="space-y-3 pb-4 border-b border-border/50">
                   <p className="text-sm font-medium text-foreground">Get in touch</p>
+                  {business.website && (
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <Globe className="h-4 w-4 text-primary shrink-0" />
+                      <a href={business.website.startsWith('http') ? business.website : `https://${business.website}`} target="_blank" rel="noopener noreferrer" className="hover:text-primary hover:underline transition-colors line-clamp-1">{business.website.replace(/^https?:\/\//, '')}</a>
+                    </div>
+                  )}
                   {business.contact_email && (
                     <div className="flex items-center gap-3 text-sm text-muted-foreground">
                       <Mail className="h-4 w-4 text-primary shrink-0" />

@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Briefcase, Mail, Phone, CheckCircle2, Circle, BadgeCheck } from 'lucide-react'
+import { Briefcase, Mail, Phone, CheckCircle2, Circle, BadgeCheck, Globe } from 'lucide-react'
 import { updateBusinessProfile } from './actions'
 import { BusinessImageUpload } from '@/components/dashboard/BusinessImageUpload'
 import { OperatingHoursForm } from '@/components/dashboard/OperatingHoursForm'
@@ -19,7 +19,7 @@ export default async function BusinessSettingsPage() {
 
   const { data: business } = await supabase
     .from('businesses')
-    .select('id, name, description, contact_email, contact_phone, status, is_active, logo_url, banner_url, operating_hours')
+    .select('id, name, description, contact_email, contact_phone, website, status, is_active, logo_url, banner_url, operating_hours')
     .eq('owner_id', user?.id)
     .single()
 
@@ -131,6 +131,20 @@ export default async function BusinessSettingsPage() {
                     defaultValue={business?.name ?? ''}
                     className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
                     placeholder="e.g. Smile Dental Clinic"
+                  />
+                </div>
+                
+                <div className="space-y-1.5">
+                  <label htmlFor="website" className="text-sm font-medium text-foreground flex items-center gap-1.5">
+                    <Globe className="h-3.5 w-3.5" /> Business Website <span className="text-muted-foreground font-normal">(Optional)</span>
+                  </label>
+                  <input
+                    id="website"
+                    name="website"
+                    type="url"
+                    defaultValue={business?.website ?? ''}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+                    placeholder="https://www.yourwebsite.com"
                   />
                 </div>
 
