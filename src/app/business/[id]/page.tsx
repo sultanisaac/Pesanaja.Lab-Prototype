@@ -15,7 +15,7 @@ export default async function BusinessDetailPage({ params }: PageProps) {
   const { data: business, error } = await supabase
     .from('businesses')
     .select(`
-      id, name, description, contact_email, contact_phone,
+      id, name, description, contact_email, contact_phone, website,
       status, is_active, logo_url, banner_url, created_at, operating_hours,
       profiles ( first_name, last_name, email, avatar_url )
     `)
