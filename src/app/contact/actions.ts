@@ -2,7 +2,7 @@
 
 import { sendEmail } from '@/lib/email';
 
-export async function submitContactForm(prevState: any, formData: FormData) {
+export async function submitContactForm(prevState: unknown, formData: FormData) {
   const name = formData.get('name') as string;
   const email = formData.get('email') as string;
   const phone = formData.get('phone') as string;
@@ -33,7 +33,7 @@ export async function submitContactForm(prevState: any, formData: FormData) {
     } else {
       return { error: 'Failed to send email. Please try again later.' };
     }
-  } catch (err) {
+  } catch {
     return { error: 'An unexpected error occurred.' };
   }
 }

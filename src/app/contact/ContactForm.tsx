@@ -18,7 +18,7 @@ export function ContactForm() {
           </svg>
         </div>
         <h3 className="font-heading text-2xl font-bold text-foreground">Message Sent!</h3>
-        <p className="mt-2 text-secondary-foreground">Thank you for contacting us. We'll get back to you as soon as possible.</p>
+        <p className="mt-2 text-secondary-foreground">Thank you for contacting us. We&apos;ll get back to you as soon as possible.</p>
       </div>
     );
   }

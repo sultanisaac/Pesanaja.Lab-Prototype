@@ -1,4 +1,4 @@
-import { Search, MapPin, Star, BadgeCheck, ShieldCheck, Heart } from "lucide-react";
+import { Search, MapPin, Star, BadgeCheck, Heart } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -153,7 +153,7 @@ export default async function Home() {
                   : "Price varies";
 
                 const displayImage = business.banner_url || business.logo_url || "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=800&auto=format&fit=crop&q=60";
-                const displayLogo = business.logo_url || "https://images.unsplash.com/photo-1514416432279-50fac261c7dd?w=100&auto=format&fit=crop&q=60";
+                // displayLogo is unused, using displayImage for banner
 
                 return (
                   <div
