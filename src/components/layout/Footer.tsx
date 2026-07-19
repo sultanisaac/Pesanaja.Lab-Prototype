@@ -19,14 +19,14 @@ export function Footer() {
           </div>
           <div className="flex flex-col space-y-4">
             <h3 className="font-heading font-semibold text-foreground">For Customers</h3>
-            <Link href="/services" className="text-sm text-secondary-foreground hover:text-primary">Browse Services</Link>
-            <Link href="/categories" className="text-sm text-secondary-foreground hover:text-primary">Categories</Link>
-            <Link href="/how-it-works" className="text-sm text-secondary-foreground hover:text-primary">How it Works</Link>
-            <Link href="/faq" className="text-sm text-secondary-foreground hover:text-primary">FAQ</Link>
+            <Link href="/search" className="text-sm text-secondary-foreground hover:text-primary">Browse Services</Link>
+            <Link href="/#categories" className="text-sm text-secondary-foreground hover:text-primary">Categories</Link>
+            <Link href="/#how-it-works" className="text-sm text-secondary-foreground hover:text-primary">How it Works</Link>
+            <Link href="/#faq" className="text-sm text-secondary-foreground hover:text-primary">FAQ</Link>
           </div>
           <div className="flex flex-col space-y-4">
             <h3 className="font-heading font-semibold text-foreground">For Businesses</h3>
-            <Link href="/partner" className="text-sm text-secondary-foreground hover:text-primary">Become a Partner</Link>
+            <Link href="/register?role=business" className="text-sm text-secondary-foreground hover:text-primary">Become a Partner</Link>
             <Link href="/pricing" className="text-sm text-secondary-foreground hover:text-primary">Pricing</Link>
             <Link href="/resources" className="text-sm text-secondary-foreground hover:text-primary">Resources</Link>
           </div>

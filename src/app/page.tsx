@@ -1,4 +1,4 @@
-import { Search, MapPin, Star, BadgeCheck, ShieldCheck, Heart } from "lucide-react";
+import { Search, MapPin, Star, BadgeCheck, Heart } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -13,12 +13,12 @@ import { createClient } from '@/lib/supabase/server'
 const POPULAR_SEARCHES = ["Dentist", "Beauty Salon", "Car Wash", "Clinic", "Restaurant", "Photographer"];
 
 const CATEGORIES = [
-  { name: "Health & Clinics", icon: ShieldCheck, count: "1.2k+" },
-  { name: "Beauty & Spa", icon: Star, count: "850+" },
-  { name: "Home Services", icon: MapPin, count: "2.1k+" },
-  { name: "Automotive", icon: ShieldCheck, count: "430+" },
-  { name: "Professional", icon: Star, count: "620+" },
-  { name: "Events", icon: Star, count: "310+" },
+  { name: "Health & Clinics", image: "/images/categories/health_clinic_photo_1784480321754.png", count: "1.2k+" },
+  { name: "Beauty & Spa", image: "/images/categories/beauty_spa_photo_1784480331223.png", count: "850+" },
+  { name: "Home Services", image: "/images/categories/home_services_photo_1784480340931.png", count: "2.1k+" },
+  { name: "Automotive", image: "/images/categories/automotive_photo_1784480351701.png", count: "430+" },
+  { name: "Professional", image: "/images/categories/professional_photo_1784480362220.png", count: "620+" },
+  { name: "Events", image: "/images/categories/events_photo_1784480372983.png", count: "310+" },
 ];
 
 export default async function Home() {
@@ -40,7 +40,7 @@ export default async function Home() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative overflow-hidden bg-brand/30 py-24 md:py-32">
+        <section className="relative overflow-hidden bg-[radial-gradient(theme(colors.primary.DEFAULT/0.1)_1px,transparent_1px)] [background-size:20px_20px] py-24 md:py-32">
           <div className="container relative z-10 mx-auto px-4 text-center">
             <div
               className="mx-auto max-w-3xl space-y-6 animate-in fade-in slide-in-from-bottom-8 duration-700"
@@ -58,9 +58,15 @@ export default async function Home() {
                   <Search className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
                   <Input
                     name="q"
+                    list="popular-services"
                     className="h-12 border-0 bg-transparent pl-12 text-base shadow-none focus-visible:ring-0"
                     placeholder="What service are you looking for?"
                   />
+                  <datalist id="popular-services">
+                    {POPULAR_SEARCHES.map(search => (
+                      <option key={search} value={search} />
+                    ))}
+                  </datalist>
                 </div>
                 <div className="hidden h-8 w-px bg-border sm:block"></div>
                 <div className="relative flex-1 w-full">
@@ -75,20 +81,6 @@ export default async function Home() {
                   Search
                 </Button>
               </form>
-
-              {/* Popular Searches */}
-              <div className="mt-8 flex flex-wrap justify-center gap-2">
-                <span className="text-sm text-secondary-foreground">Popular:</span>
-                {POPULAR_SEARCHES.map((search) => (
-                  <Link
-                    key={search}
-                    href={`/search?q=${search.toLowerCase()}`}
-                    className="text-sm text-primary transition-colors hover:text-primary-hover hover:underline"
-                  >
-                    {search}
-                  </Link>
-                ))}
-              </div>
               </div>
           </div>
           
@@ -99,7 +91,7 @@ export default async function Home() {
         </section>
 
         {/* Categories Section */}
-        <section className="container mx-auto px-4 py-20">
+        <section id="categories" className="container mx-auto px-4 py-20">
           <div className="mb-12 text-center space-y-4">
             <h2 className="font-heading text-3xl font-bold text-foreground">Explore Categories</h2>
             <p className="text-secondary-foreground">Browse services by popular categories</p>
@@ -108,19 +100,17 @@ export default async function Home() {
             {CATEGORIES.map((category) => (
               <div
                 key={category.name}
-                className="group cursor-pointer transition-all hover:border-primary/50 hover:shadow-md animate-in fade-in zoom-in-95 duration-500"
+                className="group transition-all hover:shadow-md animate-in fade-in zoom-in-95 duration-500"
               >
-                <Link href={`/categories/${category.name.toLowerCase().replace(/\s+/g, '-')}`}>
-                  <Card className="group cursor-pointer transition-all hover:border-primary/50 hover:shadow-md">
-                    <CardContent className="flex flex-col items-center justify-center p-6 text-center">
-                      <div className="mb-4 rounded-full bg-brand/50 p-4 transition-colors group-hover:bg-primary/10">
-                        <category.icon className="h-8 w-8 text-primary" />
-                      </div>
-                      <h3 className="font-heading font-medium text-foreground">{category.name}</h3>
-                      <p className="mt-1 text-xs text-secondary-foreground">{category.count} businesses</p>
-                    </CardContent>
-                  </Card>
-                </Link>
+                <Card className="group transition-all hover:border-primary/50 hover:shadow-md p-0 overflow-hidden">
+                  <div className="relative h-32 w-full overflow-hidden">
+                    <Image src={category.image} alt={category.name} fill className="object-cover transition-transform duration-500 group-hover:scale-110" />
+                  </div>
+                  <CardContent className="flex flex-col items-center justify-center p-4 text-center">
+                    <h3 className="font-heading font-medium text-foreground">{category.name}</h3>
+                    <p className="mt-1 text-xs text-secondary-foreground">{category.count} businesses</p>
+                  </CardContent>
+                </Card>
               </div>
             ))}
           </div>
@@ -163,7 +153,7 @@ export default async function Home() {
                   : "Price varies";
 
                 const displayImage = business.banner_url || business.logo_url || "https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=800&auto=format&fit=crop&q=60";
-                const displayLogo = business.logo_url || "https://images.unsplash.com/photo-1514416432279-50fac261c7dd?w=100&auto=format&fit=crop&q=60";
+                // displayLogo is unused, using displayImage for banner
 
                 return (
                   <div
@@ -185,18 +175,8 @@ export default async function Home() {
                         >
                           <Heart className="h-4 w-4 text-secondary-foreground" />
                         </Button>
-                        <div className="absolute -bottom-6 left-6">
-                          <div className="relative h-16 w-16 overflow-hidden rounded-xl border-4 border-white bg-white shadow-sm">
-                            <Image
-                              src={displayLogo}
-                              alt={`${business.name} logo`}
-                              fill
-                              className="object-cover"
-                            />
-                          </div>
-                        </div>
                       </div>
-                      <CardHeader className="pt-10">
+                      <CardHeader className="pt-6">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
                             <h3 className="font-heading text-lg font-bold text-foreground line-clamp-1">{business.name}</h3>
@@ -223,7 +203,7 @@ export default async function Home() {
                           </Badge>
                         </div>
                       </CardContent>
-                      <CardFooter className="flex items-center justify-between border-t bg-muted/50 p-6">
+                      <CardFooter className="flex items-center justify-between border-t bg-muted/50 px-6 py-4">
                         <div>
                           <p className="text-xs text-secondary-foreground">Starting from</p>
                           <p className="font-bold text-foreground">{formattedPrice}</p>
@@ -246,7 +226,7 @@ export default async function Home() {
         </section>
 
         {/* How It Works */}
-        <section className="container mx-auto px-4 py-24">
+        <section id="how-it-works" className="container mx-auto px-4 py-24">
           <div className="mb-16 text-center">
             <h2 className="font-heading text-3xl font-bold text-foreground">How It Works</h2>
             <p className="mt-4 text-secondary-foreground">Simple steps to find what you need or grow your business</p>
@@ -254,48 +234,82 @@ export default async function Home() {
 
           <div className="grid grid-cols-1 gap-12 md:grid-cols-2">
             {/* Customer Flow */}
-            <div className="rounded-3xl border bg-white p-8 shadow-sm">
-              <h3 className="mb-8 font-heading text-2xl font-bold text-foreground">For Customers</h3>
-              <div className="space-y-8">
-                {[
-                  { title: "Search & Discover", desc: "Find verified businesses and explore their services.", step: "1" },
-                  { title: "Book Appointment", desc: "Select a service, pick a date/time, and book instantly.", step: "2" },
-                  { title: "Confirmed & Notified", desc: "Receive email confirmation once the business approves.", step: "3" },
-                ].map((item) => (
-                  <div key={item.step} className="flex gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand font-bold text-primary">
-                      {item.step}
+            <div className="flex flex-col">
+              <h3 className="mb-6 font-heading text-2xl font-bold text-foreground pl-4">For Customers</h3>
+              <div className="flex-1 rounded-3xl border bg-white p-8 shadow-sm">
+                <div className="space-y-8">
+                  {[
+                    { title: "Search & Discover", desc: "Find verified businesses and explore their services.", step: "1" },
+                    { title: "Book Appointment", desc: "Select a service, pick a date/time, and book instantly.", step: "2" },
+                    { title: "Confirmed & Notified", desc: "Receive email confirmation once the business approves.", step: "3" },
+                  ].map((item) => (
+                    <div key={item.step} className="flex gap-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand font-bold text-primary">
+                        {item.step}
+                      </div>
+                      <div>
+                        <h4 className="font-heading font-semibold text-foreground">{item.title}</h4>
+                        <p className="text-sm text-secondary-foreground">{item.desc}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-heading font-semibold text-foreground">{item.title}</h4>
-                      <p className="text-sm text-secondary-foreground">{item.desc}</p>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
 
             {/* Business Flow */}
-            <div className="rounded-3xl border bg-white p-8 shadow-sm">
-              <h3 className="mb-8 font-heading text-2xl font-bold text-foreground">For Businesses</h3>
-              <div className="space-y-8">
-                {[
-                  { title: "Register & Upgrade", desc: "Create an account or upgrade your customer profile to submit a business application.", step: "1" },
-                  { title: "Activate Profile", desc: "Complete secure payment via Xendit to go public.", step: "2" },
-                  { title: "Setup Shop", desc: "List your services, pricing, and working hours.", step: "3" },
-                  { title: "Manage Bookings", desc: "Get email alerts and confirm incoming appointments.", step: "4" },
-                ].map((item) => (
-                  <div key={item.step} className="flex gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand font-bold text-primary">
-                      {item.step}
+            <div className="flex flex-col">
+              <h3 className="mb-6 font-heading text-2xl font-bold text-foreground pl-4">For Businesses</h3>
+              <div className="flex-1 rounded-3xl border bg-white p-8 shadow-sm">
+                <div className="space-y-8">
+                  {[
+                    { title: "Register & Upgrade", desc: "Create an account or upgrade your customer profile to submit a business application.", step: "1" },
+                    { title: "Activate Profile", desc: "Complete secure payment via Xendit to go public.", step: "2" },
+                    { title: "Setup Shop", desc: "List your services, pricing, and working hours.", step: "3" },
+                    { title: "Manage Bookings", desc: "Get email alerts and confirm incoming appointments.", step: "4" },
+                  ].map((item) => (
+                    <div key={item.step} className="flex gap-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand font-bold text-primary">
+                        {item.step}
+                      </div>
+                      <div>
+                        <h4 className="font-heading font-semibold text-foreground">{item.title}</h4>
+                        <p className="text-sm text-secondary-foreground">{item.desc}</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-heading font-semibold text-foreground">{item.title}</h4>
-                      <p className="text-sm text-secondary-foreground">{item.desc}</p>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section id="faq" className="bg-secondary py-24">
+          <div className="container mx-auto px-4">
+            <div className="mb-12 text-center">
+              <h2 className="font-heading text-3xl font-bold text-foreground">Frequently Asked Questions</h2>
+              <p className="mt-4 text-secondary-foreground">Everything you need to know about Pesanaja.Lab</p>
+            </div>
+            <div className="mx-auto max-w-3xl space-y-4">
+              {[
+                { q: "How do I book a service?", a: "You can search for a service, select a provider, and pick an available date and time. Once confirmed, you'll receive an email notification." },
+                { q: "Is Pesanaja.Lab free to use for customers?", a: "Yes! Customers can browse and book services completely free of charge. You only pay for the services you book." },
+                { q: "How can I list my business?", a: "You can register a business account, complete your profile, and pay a small activation fee via Xendit to list your services publicly." },
+                { q: "How do I know the professionals are trusted?", a: "We have a verification process for businesses. Look for the 'Verified' badge on a business profile to know they have been vetted by our team." }
+              ].map((faq, i) => (
+                <details key={i} className="group rounded-2xl border bg-white p-6 shadow-sm [&_summary::-webkit-details-marker]:hidden">
+                  <summary className="flex cursor-pointer items-center justify-between font-heading text-lg font-semibold text-foreground list-none">
+                    {faq.q}
+                    <span className="ml-4 transition duration-300 group-open:rotate-45 text-primary shrink-0">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                    </span>
+                  </summary>
+                  <div className="mt-4 text-secondary-foreground animate-in fade-in slide-in-from-top-2 duration-300">
+                    {faq.a}
+                  </div>
+                </details>
+              ))}
             </div>
           </div>
         </section>
