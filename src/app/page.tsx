@@ -284,35 +284,6 @@ export default async function Home() {
           </div>
         </section>
 
-        {/* FAQ Section */}
-        <section id="faq" className="bg-secondary py-24">
-          <div className="container mx-auto px-4">
-            <div className="mb-12 text-center">
-              <h2 className="font-heading text-3xl font-bold text-foreground">Frequently Asked Questions</h2>
-              <p className="mt-4 text-secondary-foreground">Everything you need to know about Pesanaja.Lab</p>
-            </div>
-            <div className="mx-auto max-w-3xl space-y-4">
-              {[
-                { q: "How do I book a service?", a: "You can search for a service, select a provider, and pick an available date and time. Once confirmed, you'll receive an email notification." },
-                { q: "Is Pesanaja.Lab free to use for customers?", a: "Yes! Customers can browse and book services completely free of charge. You only pay for the services you book." },
-                { q: "How can I list my business?", a: "You can register a business account, complete your profile, and pay a small activation fee via Xendit to list your services publicly." },
-                { q: "How do I know the professionals are trusted?", a: "We have a verification process for businesses. Look for the 'Verified' badge on a business profile to know they have been vetted by our team." }
-              ].map((faq, i) => (
-                <details key={i} className="group rounded-2xl border bg-white p-6 shadow-sm [&_summary::-webkit-details-marker]:hidden">
-                  <summary className="flex cursor-pointer items-center justify-between font-heading text-lg font-semibold text-foreground list-none">
-                    {faq.q}
-                    <span className="ml-4 transition duration-300 group-open:rotate-45 text-primary shrink-0">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                    </span>
-                  </summary>
-                  <div className="mt-4 text-secondary-foreground animate-in fade-in slide-in-from-top-2 duration-300">
-                    {faq.a}
-                  </div>
-                </details>
-              ))}
-            </div>
-          </div>
-        </section>
       </main>
 
       <Footer />
