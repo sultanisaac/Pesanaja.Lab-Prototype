@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Phone, Mail, MapPin } from "lucide-react";
 
 export function Footer() {
   return (
@@ -18,23 +19,32 @@ export function Footer() {
             </p>
           </div>
           <div className="flex flex-col space-y-4">
-            <h3 className="font-heading font-semibold text-foreground">For Customers</h3>
-            <Link href="/search" className="text-sm text-secondary-foreground hover:text-primary">Browse Services</Link>
-            <Link href="/#categories" className="text-sm text-secondary-foreground hover:text-primary">Categories</Link>
-            <Link href="/#how-it-works" className="text-sm text-secondary-foreground hover:text-primary">How it Works</Link>
-            <Link href="/#faq" className="text-sm text-secondary-foreground hover:text-primary">FAQ</Link>
-          </div>
-          <div className="flex flex-col space-y-4">
             <h3 className="font-heading font-semibold text-foreground">For Businesses</h3>
             <Link href="/register?role=business" className="text-sm text-secondary-foreground hover:text-primary">Become a Partner</Link>
             <Link href="/pricing" className="text-sm text-secondary-foreground hover:text-primary">Pricing</Link>
             <Link href="/resources" className="text-sm text-secondary-foreground hover:text-primary">Resources</Link>
           </div>
           <div className="flex flex-col space-y-4">
-            <h3 className="font-heading font-semibold text-foreground">Legal</h3>
+            <h3 className="font-heading font-semibold text-foreground">Quick Links</h3>
+            <Link href="/faq" className="text-sm text-secondary-foreground hover:text-primary">FAQ</Link>
             <Link href="/terms" className="text-sm text-secondary-foreground hover:text-primary">Terms of Service</Link>
             <Link href="/privacy" className="text-sm text-secondary-foreground hover:text-primary">Privacy Policy</Link>
             <Link href="/contact" className="text-sm text-secondary-foreground hover:text-primary">Contact Us</Link>
+          </div>
+          <div className="flex flex-col space-y-4">
+            <h3 className="font-heading font-semibold text-foreground">Contact</h3>
+            <div className="flex items-center space-x-3 text-sm text-secondary-foreground">
+              <Phone className="h-4 w-4 text-primary shrink-0" />
+              <span>+62 821 1715 945</span>
+            </div>
+            <div className="flex items-center space-x-3 text-sm text-secondary-foreground">
+              <Mail className="h-4 w-4 text-primary shrink-0" />
+              <a href="mailto:business@asimetrilab.com" className="hover:text-primary transition-colors">business@asimetrilab.com</a>
+            </div>
+            <div className="flex items-start space-x-3 text-sm text-secondary-foreground">
+              <MapPin className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+              <span>Jakarta, Indonesia</span>
+            </div>
           </div>
         </div>
         <div className="mt-12 border-t pt-8 text-center text-sm text-secondary-foreground">

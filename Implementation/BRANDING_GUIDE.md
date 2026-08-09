@@ -1,55 +1,92 @@
-# PesanajaLab Email Branding Guide
+# Pesanaja.Lab Email Branding Guide
 
-This guide establishes the visual language and technical best practices for all automated emails sent from PesanajaLab. Since email clients (Gmail, Outlook, Apple Mail) have varying support for modern CSS, these guidelines balance a **premium, modern aesthetic** with rock-solid email client compatibility.
+When creating HTML emails for Pesanaja.Lab (e.g., booking confirmations, welcome emails, notifications), please strictly adhere to the following branding guidelines to ensure a consistent experience across the platform.
 
-## 1. Design Aesthetics & Philosophy
-Our emails should feel as premium and dynamic as our web application. Every email should evoke trust, clarity, and professionalism. 
-- **Vibe:** Sleek, Premium, Trustworthy, and Modern.
-- **Space:** Use generous whitespace to let content breathe. Avoid cluttered layouts.
-- **Focus:** Every email should have one clear primary Call-To-Action (CTA).
+## 1. Color Palette
 
-## 2. Color Palette
-Use these exact hex codes for inline styling. Avoid using CSS variables as they are not supported in many email clients.
+Use these exact hex codes for all inline styles and CSS within the email.
 
-| Color Role | Hex Code | Usage |
-| :--- | :--- | :--- |
-| **Primary Brand** | `#2563EB` (Royal Blue) | Primary buttons, important links, brand highlights. |
-| **Primary Dark** | `#0F172A` (Slate 900) | Headers, footers, and high-contrast hero backgrounds. |
-| **Background** | `#F8FAFC` (Slate 50) | The outer background of the email body. |
-| **Content Card** | `#FFFFFF` (White) | The background of the central 600px content wrapper. |
-| **Primary Text** | `#334155` (Slate 700) | Main body text. Never use pure black (`#000000`). |
-| **Muted Text** | `#64748B` (Slate 500) | Footer text, disclaimers, timestamps, and secondary info. |
-| **Success Accent** | `#10B981` (Emerald) | Order confirmations, successful payments, checkmarks. |
+### Primary Colors
+*   **Primary (Brand Color):** `#00B6C0` (Use for main buttons, primary links, and key highlights)
+*   **Primary Hover:** `#009CA5`
+*   **Foreground (Main Text):** `#243746` (Use for all standard body text and headings)
+*   **Background (Main):** `#FFFFFF` (Standard white background for email body and cards)
 
-## 3. Typography
-Email clients are notoriously bad at rendering custom web fonts. We must use a robust font stack.
-- **Primary Font Stack:** `'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif`
-- **Headings (H1, H2, H3):** Bold (700 weight), `#0F172A`. Line-height: 1.3.
-- **Body Text:** Normal (400 weight), `#334155`, 16px size. Line-height: 1.6 for excellent readability.
+### Secondary & Muted Colors
+*   **Secondary / Muted Background:** `#F8FAFB` (Use for footer backgrounds, subtle callout boxes, or alternating sections)
+*   **Secondary / Muted Text:** `#61707E` (Use for secondary information, timestamps, footer links, and subtle text)
+*   **Brand Light Accent:** `#D4E2EB` (Use for subtle borders or decorative elements)
+*   **Border Color:** `#E5ECF0` (Use for dividers and card borders)
 
-## 4. Layout & Structure Guidelines
-- **Max Width:** Constrain the main email content to a maximum width of **600px**. This ensures the email doesn't stretch awkwardly on wide desktop screens and fits nicely on mobile.
-- **Centering:** Center the 600px wrapper within a slightly off-white background (`#F8FAFC`).
-- **Padding:** Use generous padding (e.g., `32px` or `40px` on desktop, `20px` on mobile) inside the main white content card.
-- **Dividers:** Use subtle borders to separate sections. E.g., `border-top: 1px solid #E2E8F0;`.
+### Status Colors
+*   **Success (Green):** `#3BB273` (Use for confirmed bookings, successful payments)
+*   **Warning (Yellow/Orange):** `#FFB84D` (Use for pending statuses, required actions)
+*   **Destructive/Danger (Red):** `#F15B5B` (Use for cancellations, errors, or alerts)
 
-## 5. UI Elements
-### Buttons (CTAs)
-Buttons must be built using HTML tables or highly compatible inline CSS to ensure they look like buttons on all clients (especially Outlook).
-- **Style:** Background `#2563EB`, Text `#FFFFFF`, rounded corners (`border-radius: 6px`), bold text.
-- **Padding:** `12px 24px` for comfortable tapping on mobile devices.
-- **Link Styling:** Ensure `text-decoration: none` so the button text doesn't get underlined.
+## 2. Typography
 
-### Images & Logos
-- Always include `alt` text for all images.
-- Define explicit `width` and `height` attributes (not just CSS) to prevent layout shifts if images are blocked.
-- Use `display: block; border: 0;` on all images to remove weird spacing in Gmail.
+Email clients have limited support for custom web fonts. We use our primary fonts as fallbacks, but ensure standard safe fonts are in the stack.
 
-## 6. HTML Email Technical Best Practices
-1. **Inline CSS is King:** While some modern clients support `<style>` blocks in the `<head>`, inline styles (e.g., `<div style="...">`) are the only 100% reliable way to style emails. 
-2. **Table Layouts:** When complex multi-column layouts are needed, use HTML `<table>` structures rather than CSS Grid or Flexbox, which fail in Outlook.
-3. **Responsive Design:** Use media queries in the `<head>` specifically targeting mobile screens (max-width: 600px) to stack columns and increase font sizes for readability.
-4. **Dark Mode Considerations:** Many users use dark mode. Ensure text has sufficient contrast and avoid using transparent PNGs with dark text that will disappear on dark backgrounds. Add a subtle white stroke or glow to logos if necessary.
+*   **Primary Heading Font:** `Manrope, Arial, Helvetica, sans-serif`
+*   **Body Font:** `Inter, Arial, Helvetica, sans-serif`
 
----
-*Reference this guide whenever drafting HTML templates for Nodemailer.*
+### Formatting Rules
+*   **Headings (`h1`, `h2`, `h3`):** Use the Heading Font. Ensure they are bold and tracking is slightly tight. Color should be `#243746`.
+*   **Body Text (`p`):** Use the Body Font. Standard size should be `14px` or `16px`. Line height should be generous (e.g., `1.5` or `150%`) for readability. Color should be `#243746`.
+
+## 3. UI Elements & Spacing
+
+*   **Buttons (Call to Action):** 
+    *   Background: `#00B6C0`
+    *   Text Color: `#FFFFFF`
+    *   Border Radius: `8px` to `12px`
+    *   Padding: `12px 24px`
+    *   Font Weight: `bold` or `600`
+    *   Text Decoration: `none`
+*   **Card/Container Borders:** Use `#E5ECF0` with a `1px solid` style. Border radius should be `12px` or `16px` for main content wrappers.
+*   **Dividers (`<hr>`):** Use `1px solid #E5ECF0`.
+
+## 4. Example Email Container CSS
+
+```css
+/* Example inline style structure */
+.email-body {
+  font-family: 'Inter', Arial, sans-serif;
+  background-color: #F8FAFB;
+  color: #243746;
+  padding: 20px;
+}
+.email-container {
+  background-color: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid #E5ECF0;
+  max-width: 600px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+.email-header {
+  padding: 24px;
+  text-align: center;
+}
+.email-content {
+  padding: 24px;
+}
+.btn-primary {
+  display: inline-block;
+  background-color: #00B6C0;
+  color: #FFFFFF;
+  padding: 12px 24px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+}
+.email-footer {
+  background-color: #F8FAFB;
+  color: #61707E;
+  padding: 24px;
+  text-align: center;
+  font-size: 12px;
+}
+```
+
+Keep all CSS fully inline (or in a `<style>` block if using a tool that inlines it automatically) to ensure maximum compatibility across email clients (Gmail, Outlook, Apple Mail).
